@@ -1,0 +1,27 @@
+mode:
+  trading_mode: "dry_run"   # Options: dry_run, sandbox, live
+  data_mode: "simulation"   # Options: simulation, real
+
+kalshi:
+  base_url_prod: "https://api.elections.kalshi.com/trade-api/v2"
+  base_url_sandbox: "https://demo-api.kalshi.co/trade-api/v2"
+  key_id: "${KALSHI_KEY_ID}"
+  private_key_path: "${KALSHI_PRIVATE_KEY_PATH}"
+
+polymarket:
+  gamma_url: "https://gamma-api.polymarket.com"
+  clob_url: "https://clob.polymarket.com"
+
+trading:
+  min_edge: 0.02
+  default_order_size: 10
+  maker_fee_bps: 0.0
+  taker_fee_bps: 0.0
+
+risk:
+  max_position_per_market: 100
+  max_global_exposure: 1000.0
+  max_daily_loss: 100.0
+
+matching:
+  min_similarity: 0.85

@@ -1,0 +1,12 @@
+httpx
+websockets
+cryptography
+pydantic>=2.0.0
+pyyaml
+duckdb
+fastapi
+uvicorn
+pytest
+pytest-asyncio
+rapidfuzz
+python-dotenv
