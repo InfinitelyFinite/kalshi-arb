@@ -31,6 +31,13 @@ env/
 .env.local
 .env.*.local
 
+# Keys & Secrets
+*.pem
+*.key
+*.priv
+secrets/
+kalshi-*.txt
+
 # Database & Data
 *.duckdb
 *.duckdb.wal
