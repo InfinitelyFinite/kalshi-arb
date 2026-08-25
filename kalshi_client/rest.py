@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 import httpx
 
 from kalshi_client.auth import KalshiAuth
+from kalshi_client.models import Event, Market, Orderbook
 
 if TYPE_CHECKING:
     from core.config_loader import AppConfig, KalshiConfig
@@ -106,7 +107,7 @@ class KalshiClient:
         self,
         method: str,
         path: str,
-        params: Optional[dict[str, Any]] = None,
+        params: Optional[Union[dict[str, Any], list[tuple[str, Any]]]] = None,
         json: Optional[Any] = None,
         headers: Optional[dict[str, str]] = None,
     ) -> httpx.Response:
@@ -174,6 +175,144 @@ class KalshiClient:
         """
         response = await self._signed_request(method="GET", path="/portfolio/balance")
         return response.json()
+
+    async def list_markets(
+        self,
+        status: str = "open",
+        limit: int = 100,
+        max_pages: Optional[int] = None,
+        event_ticker: Optional[str] = None,
+        series_ticker: Optional[str] = None,
+    ) -> list[Market]:
+        """Retrieve a list of markets with automatic cursor-based pagination.
+
+        Args:
+            status: Filter markets by status ('open', 'active', 'closed', 'settled', etc.).
+            limit: Page size limit (up to 100).
+            max_pages: Optional maximum number of pages to fetch. If None, fetches all pages.
+            event_ticker: Optional filter by parent event ticker.
+            series_ticker: Optional filter by series ticker.
+
+        Returns:
+            list[Market]: List of parsed Market model instances.
+        """
+        markets: list[Market] = []
+        cursor: Optional[str] = None
+        page = 0
+
+        while True:
+            params: dict[str, Any] = {"limit": limit}
+            if status:
+                params["status"] = status
+            if event_ticker:
+                params["event_ticker"] = event_ticker
+            if series_ticker:
+                params["series_ticker"] = series_ticker
+            if cursor:
+                params["cursor"] = cursor
+
+            response = await self._signed_request(method="GET", path="/markets", params=params)
+            data = response.json()
+
+            for item in data.get("markets", []):
+                markets.append(Market.from_api(item))
+
+            cursor = data.get("cursor")
+            page += 1
+
+            if not cursor or (max_pages is not None and page >= max_pages):
+                break
+
+        return markets
+
+    async def get_orderbooks(self, tickers: list[str]) -> dict[str, Orderbook]:
+        """Retrieve orderbooks for multiple markets using Kalshi's batched endpoint.
+
+        Chunks requests automatically into batches of up to 100 tickers per call.
+
+        Args:
+            tickers: List of market ticker symbols.
+
+        Returns:
+            dict[str, Orderbook]: Mapping of market ticker symbol to parsed Orderbook object.
+        """
+        if not tickers:
+            return {}
+
+        result: dict[str, Orderbook] = {}
+        chunk_size = 100
+
+        for i in range(0, len(tickers), chunk_size):
+            chunk = tickers[i : i + chunk_size]
+            # Pass repeated query parameters 'tickers=T1&tickers=T2' as required by Kalshi API
+            params = [("tickers", t) for t in chunk]
+            response = await self._signed_request(method="GET", path="/markets/orderbooks", params=params)
+            data = response.json()
+
+            for item in data.get("orderbooks", []):
+                ticker = item.get("ticker")
+                if ticker:
+                    result[ticker] = Orderbook.from_api(item)
+
+        return result
+
+    async def get_orderbook(self, ticker: str) -> Orderbook:
+        """Retrieve the orderbook for a single market ticker.
+
+        Args:
+            ticker: Market ticker symbol.
+
+        Returns:
+            Orderbook: Parsed Orderbook object with derived ask logic.
+        """
+        response = await self._signed_request(method="GET", path=f"/markets/{ticker}/orderbook")
+        data = response.json()
+        return Orderbook.from_api(data, ticker=ticker)
+
+    async def list_events(
+        self,
+        status: Optional[str] = None,
+        limit: int = 100,
+        max_pages: Optional[int] = None,
+        series_ticker: Optional[str] = None,
+    ) -> list[Event]:
+        """Retrieve events with automatic cursor-based pagination.
+
+        Args:
+            status: Optional event status filter.
+            limit: Page size limit (up to 100).
+            max_pages: Optional maximum number of pages to fetch. If None, fetches all pages.
+            series_ticker: Optional filter by series ticker.
+
+        Returns:
+            list[Event]: List of parsed Event model instances.
+        """
+        events: list[Event] = []
+        cursor: Optional[str] = None
+        page = 0
+
+        while True:
+            params: dict[str, Any] = {"limit": limit}
+            if status:
+                params["status"] = status
+            if series_ticker:
+                params["series_ticker"] = series_ticker
+            if cursor:
+                params["cursor"] = cursor
+
+            response = await self._signed_request(method="GET", path="/events", params=params)
+            data = response.json()
+
+            for item in data.get("events", []):
+                events.append(Event.from_api(item))
+
+            cursor = data.get("cursor")
+            page += 1
+
+            if not cursor or (max_pages is not None and page >= max_pages):
+                break
+
+        return events
 
     async def close(self) -> None:
         """Close underlying HTTP client session."""
