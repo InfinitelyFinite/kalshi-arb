@@ -135,7 +135,7 @@ class Market(BaseModel):
         raw_outcomes = _parse_json_list(data.get("outcomes"))
         raw_prices = _parse_json_list(data.get("outcomePrices"))
         raw_tokens = data.get("tokens")
-        raw_clob_tokens = _parse_json_list(data.get("clobTokenIds"))
+        raw_clob_tokens = _parse_json_list(data.get("clobTokenIds") or data.get("clob_token_ids"))
 
         parsed_outcomes = [str(o) for o in raw_outcomes] if raw_outcomes else []
         parsed_prices: list[float] = []
@@ -149,25 +149,28 @@ class Market(BaseModel):
 
         # Parse tokens list
         tokens_list: list[Token] = []
-        if isinstance(raw_tokens, list) and raw_tokens and isinstance(raw_tokens[0], dict):
-            for t_item in raw_tokens:
-                t_id = str(t_item.get("token_id") or t_item.get("tokenId") or t_item.get("id") or "")
-                t_outcome = str(t_item.get("outcome") or "")
-                t_price = None
-                if t_item.get("price") is not None:
-                    try:
-                        t_price = float(t_item["price"])
-                    except (ValueError, TypeError):
-                        pass
-                if t_id:
-                    tokens_list.append(
-                        Token(
-                            token_id=t_id,
-                            outcome=t_outcome,
-                            price=t_price,
-                            winner=t_item.get("winner"),
+        if isinstance(raw_tokens, list) and raw_tokens:
+            if isinstance(raw_tokens[0], Token):
+                tokens_list = list(raw_tokens)
+            elif isinstance(raw_tokens[0], dict):
+                for t_item in raw_tokens:
+                    t_id = str(t_item.get("token_id") or t_item.get("tokenId") or t_item.get("id") or "")
+                    t_outcome = str(t_item.get("outcome") or "")
+                    t_price = None
+                    if t_item.get("price") is not None:
+                        try:
+                            t_price = float(t_item["price"])
+                        except (ValueError, TypeError):
+                            pass
+                    if t_id:
+                        tokens_list.append(
+                            Token(
+                                token_id=t_id,
+                                outcome=t_outcome,
+                                price=t_price,
+                                winner=t_item.get("winner"),
+                            )
                         )
-                    )
         elif parsed_clob_tokens:
             for idx, t_id in enumerate(parsed_clob_tokens):
                 t_outcome = parsed_outcomes[idx] if idx < len(parsed_outcomes) else f"Outcome {idx+1}"
