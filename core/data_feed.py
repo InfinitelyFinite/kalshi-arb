@@ -481,8 +481,9 @@ class DataFeed:
             rel = conn.sql(query)
             if rel is None:
                 return []
-            df = rel.df()
-            return df.to_dict(orient="records")
+            cols = rel.columns
+            rows = rel.fetchall()
+            return [dict(zip(cols, row)) for row in rows]
         finally:
             conn.close()
 

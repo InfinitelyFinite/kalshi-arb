@@ -25,3 +25,4 @@ risk:
 
 matching:
   min_similarity: 0.85
+  overrides_path: "config/market_overrides.yaml"

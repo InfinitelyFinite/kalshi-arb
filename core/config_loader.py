@@ -127,6 +127,10 @@ class MatchingConfig(BaseModel):
         le=1.0,
         description="Minimum string similarity ratio (0.0 to 1.0) for cross-platform event matching",
     )
+    overrides_path: str = Field(
+        default="config/market_overrides.yaml",
+        description="Path to manual market overrides YAML file",
+    )
 
 
 class AppConfig(BaseModel):

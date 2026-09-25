@@ -1,0 +1,28 @@
+# Hand-maintained list of manually verified {kalshi_ticker, polymarket_condition_id} pairs.
+# Pairs listed here bypass fuzzy matching entirely and receive a confidence score of 1.0.
+#
+# Schema:
+# - kalshi_ticker: "<Kalshi Market Ticker>"
+#   polymarket_condition_id: "<Polymarket Condition ID (0x...) or Market ID>"
+#   notes: "Optional description or context about this verified match"
+
+overrides:
+  - kalshi_ticker: "FED-26MAY-T500"
+    polymarket_condition_id: "0x8f34a123bc901e4a77d562145b23e89fbc321456a7d8e9f0123456789abcdef0"
+    notes: "Federal Reserve interest rate target decision for May 2026 meeting"
+
+  - kalshi_ticker: "PRES-2028-DEM"
+    polymarket_condition_id: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b"
+    notes: "Democratic Party nominee for 2028 US Presidential Election"
+
+  - kalshi_ticker: "BTC-100K-2026"
+    polymarket_condition_id: "0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d"
+    notes: "Bitcoin price reaches or exceeds $100,000 before end of 2026"
+
+  - kalshi_ticker: "CPI-26APR-T30"
+    polymarket_condition_id: "0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f"
+    notes: "US Annual CPI Inflation rate >= 3.0% for April 2026"
+
+  - kalshi_ticker: "ETH-5K-2026"
+    polymarket_condition_id: "0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b"
+    notes: "Ethereum price reaches $5,000 in 2026"

@@ -10,3 +10,4 @@ pytest
 pytest-asyncio
 rapidfuzz
 python-dotenv
+pytz

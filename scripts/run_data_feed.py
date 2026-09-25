@@ -132,7 +132,7 @@ async def main() -> int:
     conn = duckdb.connect(str(db_file))
     try:
         print("\n--- Summary Table (Market Snapshot Row Counts) ---")
-        summary_df = conn.sql("""
+        conn.sql("""
             SELECT 
                 platform,
                 ticker,
@@ -142,12 +142,10 @@ async def main() -> int:
             FROM orderbook_snapshots
             GROUP BY platform, ticker
             ORDER BY platform, snapshot_count DESC;
-        """).df()
-        print(summary_df.to_string(index=False))
+        """).show()
 
         print("\n--- Sample Snapshot Records (duckdb.sql('select * from orderbook_snapshots limit 5')) ---")
-        sample_df = conn.sql("SELECT * FROM orderbook_snapshots ORDER BY ts DESC LIMIT 5;").df()
-        print(sample_df.to_string(index=False))
+        conn.sql("SELECT * FROM orderbook_snapshots ORDER BY ts DESC LIMIT 5;").show()
 
         total_rows = conn.sql("SELECT count(*) FROM orderbook_snapshots;").fetchone()[0]
         print(f"\nTotal Orderbook Snapshot Rows: {total_rows}")

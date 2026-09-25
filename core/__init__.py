@@ -13,6 +13,14 @@ from core.config_loader import (
     load_config,
 )
 from core.data_feed import DataFeed, MarketState
+from core.market_matcher import (
+    BaseSimilarityScorer,
+    MarketMatch,
+    MarketMatcher,
+    MarketOverride,
+    RapidFuzzTokenSortScorer,
+    load_market_overrides,
+)
 
 __all__ = [
     "AppConfig",
@@ -27,4 +35,10 @@ __all__ = [
     "load_config",
     "DataFeed",
     "MarketState",
+    "BaseSimilarityScorer",
+    "MarketMatch",
+    "MarketMatcher",
+    "MarketOverride",
+    "RapidFuzzTokenSortScorer",
+    "load_market_overrides",
 ]
