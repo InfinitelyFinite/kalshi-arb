@@ -169,6 +169,8 @@ async def fetch_live_markets(
 ) -> tuple[list[Any], list[Any], str]:
     """Fetch live market lists from Kalshi and Polymarket REST APIs.
 
+    Queries real event markets across politics, elections, economics, culture,
+    and finance rather than auto-generated sports parlay bets.
     Falls back to sample dataset if APIs are unreachable or offline.
     """
     config = load_config()
@@ -176,17 +178,98 @@ async def fetch_live_markets(
     poly_markets: list[Any] = []
     source_desc = "live"
 
+    # 1. Fetch Polymarket markets from events & CLOB
     try:
-        async with PolymarketClient.from_config(config) as poly_client:
-            poly_markets = await poly_client.list_markets(status="open", limit=limit, max_pages=1)
+        import httpx
+        async with httpx.AsyncClient(timeout=15.0) as http_client:
+            p_offset = 0
+            while len(poly_markets) < limit:
+                batch_size = min(100, limit - len(poly_markets))
+                resp = await http_client.get(
+                    "https://gamma-api.polymarket.com/events",
+                    params={"closed": "false", "limit": batch_size, "offset": p_offset},
+                )
+                if resp.status_code != 200:
+                    break
+                p_events = resp.json()
+                if not p_events:
+                    break
+                for pev in p_events:
+                    ev_title = pev.get("title", "")
+                    for pm in pev.get("markets", []):
+                        cid = pm.get("conditionId") or pm.get("condition_id")
+                        if not cid:
+                            continue
+                        q = pm.get("question", "") or ev_title
+                        pm_data = dict(pm)
+                        pm_data["condition_id"] = cid
+                        pm_data["title"] = q
+                        try:
+                            poly_markets.append(PolyMarket.model_validate(pm_data))
+                        except Exception:
+                            pass
+                        if len(poly_markets) >= limit:
+                            break
+                    if len(poly_markets) >= limit:
+                        break
+                p_offset += batch_size
     except Exception as e:
-        logger.debug("Could not fetch live Polymarket markets: %s", e)
+        logger.debug("Could not fetch live Polymarket markets via events: %s", e)
 
+    # 2. Fetch Kalshi real event prediction markets
     try:
         async with KalshiClient.from_config(config) as kalshi_client:
-            kalshi_markets = await kalshi_client.list_markets(status="open", limit=limit, max_pages=1)
+            cursor = None
+            while len(kalshi_markets) < limit:
+                params: dict[str, Any] = {
+                    "status": "open",
+                    "limit": min(100, max(20, limit // 2)),
+                    "with_nested_markets": "true",
+                }
+                if cursor:
+                    params["cursor"] = cursor
+                resp = await kalshi_client._signed_request("GET", "/events", params=params)
+                data = resp.json()
+                events = data.get("events", [])
+                if not events:
+                    break
+                for ev in events:
+                    ev_title = ev.get("title", "")
+                    # Skip sports combo / parlay events
+                    category = ev.get("category", "")
+                    for m in ev.get("markets", []):
+                        ticker = m.get("ticker")
+                        if not ticker:
+                            continue
+                        sub = m.get("title", "") or m.get("yes_sub_title", "")
+                        # Build full descriptive title
+                        if sub and sub.strip().lower() != ev_title.strip().lower():
+                            full_title = f"{ev_title}: {sub}"
+                        else:
+                            full_title = ev_title
+                        m_data = dict(m)
+                        m_data["title"] = full_title
+                        try:
+                            kalshi_markets.append(KalshiMarket.model_validate(m_data))
+                        except Exception:
+                            pass
+                        if len(kalshi_markets) >= limit:
+                            break
+                    if len(kalshi_markets) >= limit:
+                        break
+                cursor = data.get("cursor")
+                if not cursor:
+                    break
     except Exception as e:
-        logger.debug("Could not fetch live Kalshi markets: %s", e)
+        logger.debug("Could not fetch Kalshi event markets: %s", e)
+
+    # Fallback to standard list_markets if events empty
+    if not kalshi_markets:
+        try:
+            async with KalshiClient.from_config(config) as kalshi_client:
+                kalshi_markets = await kalshi_client.list_markets(status="open", limit=limit, max_pages=1)
+        except Exception as e:
+            logger.debug("Could not fetch live Kalshi markets fallback: %s", e)
 
     if not kalshi_markets or not poly_markets:
         source_desc = "sample (live APIs unavailable/offline)"

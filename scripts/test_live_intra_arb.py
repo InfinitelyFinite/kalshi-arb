@@ -20,6 +20,7 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add project root to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -33,20 +34,40 @@ from kalshi_client.rest import KalshiClient
 from polymarket_client.rest import PolymarketClient
 
 
-async def scan_kalshi(limit: int, is_sandbox: bool, config) -> list:
+async def scan_kalshi(limit: int, is_sandbox: bool, config, series: Optional[str] = None) -> list:
     """Fetch live or sandbox Kalshi orderbooks."""
     print(f"\n[Kalshi] Connecting to {'SANDBOX' if is_sandbox else 'PRODUCTION'} API...")
     try:
         client = KalshiClient.from_config(config, is_sandbox=is_sandbox)
         async with client:
-            markets = await client.list_markets(status="open", limit=limit, max_pages=1)
-            if not markets:
-                markets = await client.list_markets(status="", limit=limit, max_pages=1)
-            if not markets:
-                print("   [WARN] No Kalshi markets found.")
-                return []
+            all_markets = []
+            if series:
+                target_series = [s.strip() for s in series.split(",") if s.strip()]
+                for s in target_series:
+                    mkts = await client.list_markets(series_ticker=s, status="open", limit=limit, max_pages=1)
+                    all_markets.extend(mkts)
+            elif not is_sandbox:
+                # In production, query active liquid series to avoid untraded combinatorial parlays
+                for s in ["KXINX", "KXBTC", "KXETH", "KXNDX"]:
+                    try:
+                        mkts = await client.list_markets(series_ticker=s, status="open", limit=max(5, limit // 4), max_pages=1)
+                        all_markets.extend(mkts)
+                    except Exception:
+                        pass
+                if not all_markets:
+                    all_markets = await client.list_markets(status="open", limit=limit, max_pages=1)
+            else:
+                all_markets = await client.list_markets(status="open", limit=limit, max_pages=1)
 
-            target_tickers = [m.ticker for m in markets[:limit]]
+            if not all_markets:
+                all_markets = await client.list_markets(status="", limit=limit, max_pages=1)
+
+            # Filter out empty MVE combinatoric contracts if better markets exist
+            filtered = [m for m in all_markets if not m.ticker.startswith("KXMVECROSSCATEGORY")]
+            if filtered:
+                all_markets = filtered
+
+            target_tickers = [m.ticker for m in all_markets[:limit]]
             print(f"   --> Found {len(target_tickers)} markets. Fetching orderbooks in batch...")
             orderbooks = await client.get_orderbooks(target_tickers)
             print(f"   --> Retrieved {len(orderbooks)} orderbooks.")
@@ -105,6 +126,7 @@ async def main():
     parser.add_argument("--limit", type=int, default=25, help="Number of markets to fetch per platform")
     parser.add_argument("--min-edge", type=float, default=None, help="Custom min edge threshold (e.g. 0.01 for 1 cent)")
     parser.add_argument("--simulate-edge", action="store_true", help="Inject a synthetic 3.5c edge to verify alert triggering")
+    parser.add_argument("--series", type=str, default=None, help="Comma-separated Kalshi series tickers (e.g. KXINX,KXBTC)")
     args = parser.parse_args()
 
     # Default to scanning Polymarket + Kalshi if neither specified
@@ -129,7 +151,7 @@ async def main():
 
     if args.kalshi:
         is_sandbox = not args.prod
-        kalshi_obs = await scan_kalshi(limit=args.limit, is_sandbox=is_sandbox, config=config)
+        kalshi_obs = await scan_kalshi(limit=args.limit, is_sandbox=is_sandbox, config=config, series=args.series)
         all_markets.extend(kalshi_obs)
 
     if args.polymarket:
@@ -163,10 +185,15 @@ async def main():
     print("-" * 88)
 
     ranked_by_spread = []
+    one_sided_orderbooks = []
     empty_orderbooks = []
     for m in all_markets:
-        y_ask = getattr(m, "best_yes_ask", None) or getattr(m, "yes_ask", None)
-        n_ask = getattr(m, "best_no_ask", None) or getattr(m, "no_ask", None)
+        y_ask = getattr(m, "best_yes_ask", None)
+        if y_ask is None:
+            y_ask = getattr(m, "yes_ask", None)
+        n_ask = getattr(m, "best_no_ask", None)
+        if n_ask is None:
+            n_ask = getattr(m, "no_ask", None)
         plat = getattr(m, "platform", None)
         if not plat:
             plat = "polymarket" if (hasattr(m, "token_id") or hasattr(m, "condition_id")) else "kalshi"
@@ -174,23 +201,32 @@ async def main():
         if y_ask is not None and n_ask is not None:
             cost = y_ask + n_ask
             edge = 100 - cost
-            ranked_by_spread.append((plat, tick, y_ask, n_ask, cost, edge))
+            ranked_by_spread.append((plat, tick, f"{y_ask}¢", f"{n_ask}¢", f"{cost}¢", f"+{edge}¢" if edge > 0 else f"{edge}¢", cost))
+        elif y_ask is not None or n_ask is not None:
+            y_str = f"{y_ask}¢" if y_ask is not None else "--"
+            n_str = f"{n_ask}¢" if n_ask is not None else "--"
+            one_sided_orderbooks.append((plat, tick, y_str, n_str, "--", "One-Sided"))
         else:
-            empty_orderbooks.append((plat, tick))
+            empty_orderbooks.append((plat, tick, "--", "--", "--", "Empty Book"))
 
     # Sort by total cost ascending (closest to arb first)
-    ranked_by_spread.sort(key=lambda x: x[4])
+    ranked_by_spread.sort(key=lambda x: x[6])
 
-    for plat, tick, y_ask, n_ask, cost, edge in ranked_by_spread[:15]:
-        edge_str = f"+{edge}c" if edge > 0 else f"{edge}c"
-        print(f"{plat:<12} {tick:<32} {y_ask:>3}c       {n_ask:>3}c       {cost:>3}c         {edge_str:>6}")
+    displayed = 0
+    for plat, tick, y_str, n_str, cost_str, edge_str, _ in ranked_by_spread[:15]:
+        print(f"{plat:<12} {tick:<32} {y_str:>7}    {n_str:>7}    {cost_str:>10}    {edge_str:>10}")
+        displayed += 1
 
-    if empty_orderbooks and not ranked_by_spread:
-        for plat, tick in empty_orderbooks[:10]:
-            print(f"{plat:<12} {tick:<32} {'--':>4}       {'--':>4}       {'--':>4}         {'Empty Book':>10}")
+    remaining_slots = max(0, 15 - displayed)
+    for plat, tick, y_str, n_str, cost_str, edge_str in one_sided_orderbooks[:remaining_slots]:
+        print(f"{plat:<12} {tick:<32} {y_str:>7}    {n_str:>7}    {cost_str:>10}    {edge_str:>10}")
+        displayed += 1
+
+    if displayed == 0 and empty_orderbooks:
+        for plat, tick, y_str, n_str, cost_str, edge_str in empty_orderbooks[:10]:
+            print(f"{plat:<12} {tick:<32} {y_str:>7}    {n_str:>7}    {cost_str:>10}    {edge_str:>10}")
         print("-" * 88)
-        print("  [NOTE] Kalshi Sandbox returns open test markets, but their orderbooks are empty (no bids/asks).")
-        print("         Kalshi Sandbox does not run automated market makers quoting prices.")
+        print("  [NOTE] Orderbooks returned no active bids or asks.")
         print("         To verify the detection engine with simulated spreads, add `--simulate-edge`.")
     else:
         print("-" * 88)

@@ -78,7 +78,11 @@ class KalshiClient:
         kalshi_cfg = config.kalshi if hasattr(config, "kalshi") else config
         base_url = kalshi_cfg.base_url_sandbox if is_sandbox else kalshi_cfg.base_url_prod
 
-        auth = KalshiAuth.from_config(config, is_sandbox=is_sandbox)
+        try:
+            auth = KalshiAuth.from_config(config, is_sandbox=is_sandbox)
+        except Exception as e:
+            logger.warning("Kalshi credentials not available (%s); proceeding with unauthenticated client.", e)
+            auth = None
         return cls(auth=auth, base_url=base_url, is_sandbox=is_sandbox, timeout=timeout)
 
     def _resolve_paths(self, endpoint_path: str) -> tuple[str, str]:

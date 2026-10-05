@@ -17,6 +17,7 @@ trading:
   default_order_size: 10
   maker_fee_bps: 0.0
   taker_fee_bps: 0.0
+  polygon_gas_estimate_cents: 0.0
 
 risk:
   max_position_per_market: 100

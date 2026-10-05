@@ -82,7 +82,7 @@ class PolymarketConfig(BaseModel):
 class TradingConfig(BaseModel):
     min_edge: float = Field(
         default=0.02,
-        gt=0.0,
+        ge=0.0,
         description="Minimum arbitrage profit edge threshold (e.g. 0.02 = 2%)",
     )
     default_order_size: int = Field(
@@ -99,6 +99,11 @@ class TradingConfig(BaseModel):
         default=0.0,
         ge=0.0,
         description="Taker fee in basis points",
+    )
+    polygon_gas_estimate_cents: float = Field(
+        default=0.0,
+        ge=0.0,
+        description="Estimated Polygon network gas cost per Polymarket trade in cents",
     )
 
 
@@ -194,12 +199,18 @@ def _substitute_env_vars(obj: Any) -> Any:
     return obj
 
 
+_dotenv_loaded = False
+
+
 def load_config(config_path: Optional[str | Path] = None) -> AppConfig:
     """Load and validate config.yaml with environment variable substitutions.
 
     Fails loudly with detailed ValidationError if required sections/fields are missing or invalid.
     """
-    load_dotenv()
+    global _dotenv_loaded
+    if not _dotenv_loaded:
+        load_dotenv()
+        _dotenv_loaded = True
 
     if config_path is None:
         # Default to config.yaml in the project root

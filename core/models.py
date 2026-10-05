@@ -7,6 +7,26 @@ from typing import Any, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class OpportunityLeg(BaseModel):
+    """Execution leg of an arbitrage opportunity.
+
+    Attributes:
+        platform: Platform for this leg ('kalshi' or 'polymarket').
+        ticker: Market ticker or token/condition identifier.
+        side: Trading side action ('buy_yes' or 'buy_no').
+        price_cents: Ask price in cents.
+        fee_cents: Estimated transaction/gas fee in cents for this leg.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    platform: str = Field(description="Execution platform ('kalshi' or 'polymarket')")
+    ticker: str = Field(description="Market identifier, ticker, condition ID, or token ID")
+    side: str = Field(description="Execution action ('buy_yes' or 'buy_no')")
+    price_cents: float = Field(description="Purchase ask price in cents")
+    fee_cents: float = Field(default=0.0, description="Estimated fee in cents for this leg")
+
+
 class Opportunity(BaseModel):
     """Arbitrage opportunity model shared across intra-market and cross-platform engines.
 
@@ -22,6 +42,7 @@ class Opportunity(BaseModel):
         gross_edge_cents: Gross profit edge in cents before fees.
         estimated_fees_cents: Total estimated transaction fees in cents.
         strategy: Strategy name ('intra_market' or 'cross_platform').
+        legs: List of execution legs specifying platform, ticker, side, price, and leg fee.
     """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
@@ -60,6 +81,10 @@ class Opportunity(BaseModel):
     strategy: str = Field(
         default="intra_market",
         description="Arbitrage strategy type ('intra_market' or 'cross_platform')",
+    )
+    legs: list[OpportunityLeg] = Field(
+        default_factory=list,
+        description="Explicit trade legs for multi-leg or cross-platform execution",
     )
 
 

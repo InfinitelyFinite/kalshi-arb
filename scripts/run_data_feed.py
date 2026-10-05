@@ -36,11 +36,12 @@ logger = logging.getLogger("run_data_feed")
 
 
 def print_banner(duration: float, snapshot_interval: float, duckdb_path: str, is_sandbox: bool) -> None:
+    duration_str = "Continuous (runs until stopped with Ctrl+C)" if duration <= 0 else f"{duration:.1f}s ({duration / 3600:.2f} hrs)"
     print("=" * 95)
     print("  Unified DataFeed (Kalshi & Polymarket) + DuckDB Orderbook Snapshots")
     print("=" * 95)
     print(f"Environment:       {'SANDBOX' if is_sandbox else 'PRODUCTION'}")
-    print(f"Duration:          {duration:.1f}s")
+    print(f"Duration:          {duration_str}")
     print(f"Snapshot Interval: {snapshot_interval:.1f}s")
     print(f"DuckDB Output:     {duckdb_path}")
     print("=" * 95 + "\n")
@@ -49,7 +50,7 @@ def print_banner(duration: float, snapshot_interval: float, duckdb_path: str, is
 async def main() -> int:
     load_dotenv()
     parser = argparse.ArgumentParser(description="Stream and snapshot Kalshi & Polymarket market data to DuckDB.")
-    parser.add_argument("--duration", type=float, default=300.0, help="Total run duration in seconds (default: 300s / 5 min)")
+    parser.add_argument("--duration", type=float, default=0.0, help="Total run duration in seconds (default: 0 = continuous/infinite)")
     parser.add_argument("--snapshot-interval", type=float, default=60.0, help="DuckDB snapshot interval in seconds (default: 60s)")
     parser.add_argument("--poll-interval", type=float, default=10.0, help="REST polling interval in seconds (default: 10s)")
     parser.add_argument("--duckdb-path", type=str, default="data/snapshots.duckdb", help="Target DuckDB file path")
@@ -86,23 +87,25 @@ async def main() -> int:
     )
 
     start_time = time.time()
+    is_infinite = args.duration <= 0
 
     try:
         print("[1/3] Initializing and discovering markets...")
         await feed.start()
 
         print(f"\n[2/3] Feed active! Tracking {len(feed.kalshi_tickers)} Kalshi markets and {len(feed.polymarket_tokens)} Polymarket markets.")
-        print("     Snapshots are recorded to DuckDB on interval. Press Ctrl+C to stop early.\n")
+        print("     Snapshots are recorded to DuckDB on interval. Press Ctrl+C to stop.\n")
 
         last_display = 0.0
-        while (time.time() - start_time) < args.duration:
+        while is_infinite or (time.time() - start_time) < args.duration:
             await asyncio.sleep(1.0)
             elapsed = time.time() - start_time
 
-            # Print live state summary every 15 seconds
-            if elapsed - last_display >= 15.0:
+            # Print live state summary periodically
+            if elapsed - last_display >= 30.0:
                 last_display = elapsed
-                print(f"[{elapsed:5.1f}s / {args.duration:5.1f}s] Active Market States ({len(feed.market_state)} total):")
+                dur_label = "∞" if is_infinite else f"{args.duration:.0f}s"
+                print(f"[{elapsed:6.1f}s / {dur_label}] Active Market States ({len(feed.market_state)} total, snapshots appending to {args.duckdb_path}):")
                 sample_states = list(feed.market_state.values())[:6]
                 for s in sample_states:
                     y_b = f"{s.yes_bid}¢" if s.yes_bid is not None else "--"
