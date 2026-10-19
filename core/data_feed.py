@@ -81,9 +81,10 @@ class DataFeed:
     def __init__(
         self,
         config: Optional[AppConfig] = None,
-        kalshi_client: Optional[KalshiClient] = None,
+        kalshi_client: Optional[Any] = None,
         kalshi_ws_client: Optional[KalshiWSClient] = None,
-        polymarket_client: Optional[PolymarketClient] = None,
+        polymarket_client: Optional[Any] = None,
+        fake_generator: Optional[Any] = None,
         kalshi_tickers: Optional[list[str]] = None,
         polymarket_tokens: Optional[list[str]] = None,
         duckdb_path: Union[str, Path] = DEFAULT_DUCKDB_PATH,
@@ -99,6 +100,7 @@ class DataFeed:
             kalshi_client: Injected Kalshi REST client.
             kalshi_ws_client: Injected Kalshi WebSocket client.
             polymarket_client: Injected Polymarket REST client.
+            fake_generator: Optional FakeMarketGenerator for simulation mode.
             kalshi_tickers: List of Kalshi market tickers to track.
             polymarket_tokens: List of Polymarket token IDs or condition IDs to track.
             duckdb_path: Filepath or :memory: for DuckDB storage.
@@ -123,20 +125,47 @@ class DataFeed:
         else:
             self.is_sandbox = False
 
-        # Clients
-        if kalshi_client:
-            self.kalshi_client = kalshi_client
-        elif config:
-            self.kalshi_client = KalshiClient.from_config(config, is_sandbox=self.is_sandbox)
+        # Determine data_mode (simulation vs real)
+        if config and hasattr(config, "mode") and hasattr(config.mode, "data_mode"):
+            dm_val = config.mode.data_mode
+            dm_str = dm_val.value if hasattr(dm_val, "value") else str(dm_val)
+            self.is_simulation = dm_str.lower() == "simulation"
         else:
-            self.kalshi_client = KalshiClient(is_sandbox=self.is_sandbox)
+            self.is_simulation = False
 
-        if polymarket_client:
-            self.polymarket_client = polymarket_client
-        elif config:
-            self.polymarket_client = PolymarketClient.from_config(config)
+        self.fake_generator = fake_generator
+
+        # Clients
+        if self.is_simulation:
+            # In simulation mode, disable real WebSocket and use synthetic generator
+            self.enable_ws = False
+            if not self.fake_generator:
+                from simulation.fake_market_generator import FakeMarketGenerator
+                self.fake_generator = FakeMarketGenerator()
+
+            if kalshi_client:
+                self.kalshi_client = kalshi_client
+            else:
+                self.kalshi_client = self.fake_generator.kalshi_client
+
+            if polymarket_client:
+                self.polymarket_client = polymarket_client
+            else:
+                self.polymarket_client = self.fake_generator.polymarket_client
         else:
-            self.polymarket_client = PolymarketClient()
+            if kalshi_client:
+                self.kalshi_client = kalshi_client
+            elif config:
+                self.kalshi_client = KalshiClient.from_config(config, is_sandbox=self.is_sandbox)
+            else:
+                self.kalshi_client = KalshiClient(is_sandbox=self.is_sandbox)
+
+            if polymarket_client:
+                self.polymarket_client = polymarket_client
+            elif config:
+                self.polymarket_client = PolymarketClient.from_config(config)
+            else:
+                self.polymarket_client = PolymarketClient()
 
         # Tracked markets
         self.kalshi_tickers: list[str] = list(kalshi_tickers or [])
