@@ -338,10 +338,11 @@ def test_project_market_overrides_file_contains_confirmed_pairs():
     assert overrides_file.exists(), f"Overrides file missing at {overrides_file}"
 
     overrides = load_market_overrides(overrides_file)
-    assert len(overrides) >= 3, f"Expected at least 3 confirmed pairs, got {len(overrides)}"
+    confirmed_pairs = [ov for ov in overrides if ov.polymarket_condition_id]
+    assert len(confirmed_pairs) >= 3, f"Expected at least 3 confirmed pairs, got {len(confirmed_pairs)}"
 
     for ov in overrides:
         assert ov.kalshi_ticker, "Kalshi ticker must not be empty"
-        assert ov.polymarket_condition_id, "Polymarket condition ID must not be empty"
         assert ov.kalshi_ticker.strip() == ov.kalshi_ticker
-        assert ov.polymarket_condition_id.strip() == ov.polymarket_condition_id
+        if ov.polymarket_condition_id is not None:
+            assert ov.polymarket_condition_id.strip() == ov.polymarket_condition_id

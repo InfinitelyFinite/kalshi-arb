@@ -50,6 +50,7 @@ class MarketState(BaseModel):
     )
     raw_market: Optional[Any] = Field(default=None, description="Underlying Market model instance")
     raw_orderbook: Optional[Any] = Field(default=None, description="Underlying Orderbook model instance")
+    condition_id: Optional[str] = Field(default=None, description="Polymarket condition ID if applicable")
 
     @property
     def yes_spread(self) -> Optional[int]:
@@ -176,6 +177,50 @@ class DataFeed:
         self._polymarket_markets: dict[str, PolyMarket] = {}
         self._poly_token_to_market: dict[str, PolyMarket] = {}
 
+        # If no explicit tickers provided, attempt to load from overrides config
+        if not self.kalshi_tickers and not self.polymarket_tokens and config is not None:
+            overrides_path = None
+            if hasattr(config, "matching") and getattr(config.matching, "overrides_path", None):
+                overrides_path = config.matching.overrides_path
+            elif Path("config/market_overrides.yaml").exists():
+                overrides_path = "config/market_overrides.yaml"
+
+            if overrides_path and Path(overrides_path).exists():
+                from core.market_matcher import load_market_overrides
+                loaded_overrides = load_market_overrides(overrides_path)
+                for ov in loaded_overrides:
+                    if ov.kalshi_ticker and ov.kalshi_ticker not in self.kalshi_tickers:
+                        self.kalshi_tickers.append(ov.kalshi_ticker)
+                        title = ov.notes or ov.kalshi_title or ov.kalshi_ticker
+                        self._kalshi_markets[ov.kalshi_ticker] = KalshiMarket(
+                            ticker=ov.kalshi_ticker,
+                            title=title,
+                            status="open",
+                        )
+                    if ov.polymarket_condition_id:
+                        p_id = ov.polymarket_condition_id
+                        if p_id not in self.polymarket_tokens:
+                            self.polymarket_tokens.append(p_id)
+                        p_title = ov.notes or ov.polymarket_title or p_id
+                        pm = PolyMarket(
+                            ticker=p_id,
+                            condition_id=p_id,
+                            title=p_title,
+                            status="open",
+                            yes_token_id=f"{p_id}_yes",
+                            no_token_id=f"{p_id}_no",
+                        )
+                        self._polymarket_markets[p_id] = pm
+                        self._poly_token_to_market[p_id] = pm
+                        self._poly_token_to_market[f"{p_id}_yes"] = pm
+                if self.kalshi_tickers or self.polymarket_tokens:
+                    logger.info(
+                        "DataFeed configured with %d Kalshi ticker(s) and %d Polymarket token(s) from %s",
+                        len(self.kalshi_tickers),
+                        len(self.polymarket_tokens),
+                        overrides_path,
+                    )
+
         # WebSocket client
         self.kalshi_ws_client = kalshi_ws_client
         if self.enable_ws and not self.kalshi_ws_client and self.kalshi_tickers:
@@ -218,6 +263,7 @@ class DataFeed:
         ts: Optional[datetime] = None,
         raw_market: Optional[Any] = None,
         raw_orderbook: Optional[Any] = None,
+        condition_id: Optional[str] = None,
     ) -> MarketState:
         """Update or insert a market's state in memory."""
         platform_key = platform.lower()
@@ -225,6 +271,13 @@ class DataFeed:
         now_ts = ts or datetime.now(timezone.utc)
 
         existing = self._market_state.get(key)
+        cid = (
+            condition_id
+            or getattr(raw_market, "condition_id", None)
+            or getattr(raw_orderbook, "condition_id", None)
+            or (existing.condition_id if existing else None)
+        )
+
         if existing:
             # Update fields preserving previous metadata if not supplied
             new_title = title if title is not None else existing.title
@@ -244,6 +297,7 @@ class DataFeed:
                 ts=now_ts,
                 raw_market=new_raw_market,
                 raw_orderbook=new_raw_ob,
+                condition_id=cid,
             )
         else:
             state = MarketState(
@@ -258,6 +312,7 @@ class DataFeed:
                 ts=now_ts,
                 raw_market=raw_market,
                 raw_orderbook=raw_orderbook,
+                condition_id=cid,
             )
 
         self._market_state[key] = state
@@ -265,6 +320,10 @@ class DataFeed:
 
     async def discover_markets(self, limit: int = 30) -> None:
         """Auto-discover open markets from Kalshi and Polymarket if none are configured."""
+        if getattr(getattr(self.config, "matching", None), "overrides_only", False):
+            logger.debug("Skipping market auto-discovery because matching.overrides_only is True.")
+            return
+
         if not self.kalshi_tickers:
             try:
                 k_markets = await self.kalshi_client.list_markets(status="open", limit=limit, max_pages=1)
@@ -340,6 +399,7 @@ class DataFeed:
             market = self._poly_token_to_market.get(token_id) or self._polymarket_markets.get(token_id)
             title = market.title if market else token_id
             vol = market.volume if market else 0
+            cid = getattr(market, "condition_id", None) or getattr(ob, "condition_id", None) or (token_id if token_id.startswith("0x") else None)
 
             self.update_market_state(
                 platform="polymarket",
@@ -352,6 +412,7 @@ class DataFeed:
                 volume=vol,
                 raw_market=market,
                 raw_orderbook=ob,
+                condition_id=cid,
             )
 
         return orderbooks

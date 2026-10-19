@@ -119,7 +119,7 @@ class MarketOverride(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     kalshi_ticker: str = Field(description="Kalshi market ticker symbol")
-    polymarket_condition_id: str = Field(description="Polymarket condition ID (0x...) or identifier")
+    polymarket_condition_id: Optional[str] = Field(default=None, description="Polymarket condition ID (0x...) or identifier")
     notes: Optional[str] = Field(default=None, description="Optional description/rationale for this verified pair")
     kalshi_title: Optional[str] = Field(default=None, description="Cached or expected Kalshi title")
     polymarket_title: Optional[str] = Field(default=None, description="Cached or expected Polymarket title")
@@ -210,11 +210,11 @@ def load_market_overrides(overrides_path: Union[str, Path]) -> list[MarketOverri
             or item.get("polymarket_ticker")
         )
 
-        if kalshi_ticker and poly_condition:
+        if kalshi_ticker:
             overrides.append(
                 MarketOverride(
                     kalshi_ticker=str(kalshi_ticker).strip(),
-                    polymarket_condition_id=str(poly_condition).strip(),
+                    polymarket_condition_id=str(poly_condition).strip() if poly_condition else None,
                     notes=item.get("notes"),
                     kalshi_title=item.get("kalshi_title"),
                     polymarket_title=item.get("polymarket_title"),
@@ -281,6 +281,7 @@ class MarketMatcher:
         overrides_path: Optional[Union[str, Path]] = "config/market_overrides.yaml",
         overrides: Optional[Sequence[Union[MarketOverride, dict[str, Any]]]] = None,
         scorer: Optional[BaseSimilarityScorer] = None,
+        overrides_only: bool = False,
     ) -> None:
         """Initialize MarketMatcher.
 
@@ -289,10 +290,12 @@ class MarketMatcher:
             overrides_path: Path to `market_overrides.yaml` manual override file.
             overrides: Optional explicitly passed override objects or dicts (overrides file).
             scorer: Custom BaseSimilarityScorer implementation (defaults to RapidFuzzTokenSortScorer).
+            overrides_only: If True, only match verified override pairs and skip fuzzy similarity matching.
         """
         self.min_similarity = float(min_similarity)
         self.scorer = scorer or RapidFuzzTokenSortScorer()
         self.overrides_path = Path(overrides_path) if overrides_path else None
+        self.overrides_only = bool(overrides_only)
 
         if overrides is not None:
             self.overrides: list[MarketOverride] = []
@@ -322,7 +325,8 @@ class MarketMatcher:
         """
         min_similarity = config.matching.min_similarity
         target_path = overrides_path or getattr(config.matching, "overrides_path", "config/market_overrides.yaml")
-        return cls(min_similarity=min_similarity, overrides_path=target_path, scorer=scorer)
+        overrides_only = getattr(config.matching, "overrides_only", False)
+        return cls(min_similarity=min_similarity, overrides_path=target_path, scorer=scorer, overrides_only=overrides_only)
 
     def compute_similarity(self, title_a: str, title_b: str) -> float:
         """Compute similarity score between two title strings using the active scorer."""
@@ -360,19 +364,34 @@ class MarketMatcher:
             if ticker:
                 kalshi_by_ticker[ticker] = (ticker, title, raw)
 
-        # Build lookup tables for Polymarket markets (by condition_id and slug/ticker)
+        # Build lookup tables for Polymarket markets (by condition_id, token_id, slug, and ticker)
         poly_by_id: dict[str, tuple[str, str, Any]] = {}
         for pm in polymarket_markets:
             condition_id, title, raw = _extract_market_info(pm)
             if condition_id:
                 poly_by_id[condition_id] = (condition_id, title, raw)
-                # Also index by slug/ticker if present on object
-                slug = getattr(pm, "slug", None) or (pm.get("slug") if isinstance(pm, dict) else None)
-                if slug:
-                    poly_by_id[slug] = (condition_id, title, raw)
-                ticker = getattr(pm, "ticker", None) or (pm.get("ticker") if isinstance(pm, dict) else None)
-                if ticker and ticker not in poly_by_id:
-                    poly_by_id[ticker] = (condition_id, title, raw)
+                poly_by_id[condition_id.lower()] = (condition_id, title, raw)
+
+            # Also index by condition_id attribute if present on pm or raw_market
+            for cond_attr in ("condition_id", "conditionId"):
+                cid = getattr(pm, cond_attr, None) or getattr(getattr(pm, "raw_market", None), cond_attr, None) or (pm.get(cond_attr) if isinstance(pm, dict) else None)
+                if cid:
+                    cid_str = str(cid).strip()
+                    poly_by_id[cid_str] = (cid_str, title, raw)
+                    poly_by_id[cid_str.lower()] = (cid_str, title, raw)
+
+            # Also index by slug/ticker if present on object
+            slug = getattr(pm, "slug", None) or getattr(getattr(pm, "raw_market", None), "slug", None) or (pm.get("slug") if isinstance(pm, dict) else None)
+            if slug:
+                poly_by_id[str(slug).strip()] = (condition_id, title, raw)
+
+            ticker = getattr(pm, "ticker", None) or getattr(getattr(pm, "raw_market", None), "ticker", None) or (pm.get("ticker") if isinstance(pm, dict) else None)
+            if ticker and str(ticker).strip() not in poly_by_id:
+                poly_by_id[str(ticker).strip()] = (condition_id, title, raw)
+
+            yes_token = getattr(pm, "yes_token_id", None) or getattr(getattr(pm, "raw_market", None), "yes_token_id", None)
+            if yes_token:
+                poly_by_id[str(yes_token).strip()] = (condition_id, title, raw)
 
         matched_kalshi_tickers: set[str] = set()
         matched_poly_conditions: set[str] = set()
@@ -385,8 +404,12 @@ class MarketMatcher:
             k_ticker = override.kalshi_ticker
             p_cond = override.polymarket_condition_id
 
+            if not p_cond:
+                # Override entry does not have a linked Polymarket market yet
+                continue
+
             k_info = kalshi_by_ticker.get(k_ticker)
-            p_info = poly_by_id.get(p_cond)
+            p_info = poly_by_id.get(p_cond) or poly_by_id.get(p_cond.lower())
 
             # If both markets are present in the provided market lists
             if k_info and p_info:
@@ -427,6 +450,9 @@ class MarketMatcher:
         # ----------------------------------------------------------------------
         # Phase 2: Fuzzy Similarity Matching
         # ----------------------------------------------------------------------
+        if self.overrides_only:
+            return results
+
         candidate_fuzzy_matches: list[MarketMatch] = []
 
         # Deduplicate Polymarket list so we only compare unique condition IDs

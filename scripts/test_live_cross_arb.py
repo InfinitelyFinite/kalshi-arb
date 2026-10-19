@@ -35,12 +35,20 @@ from polymarket_client.models import Orderbook as PolyOrderbook
 from polymarket_client.rest import PolymarketClient
 
 
-async def fetch_kalshi_markets_and_books(limit: int, is_sandbox: bool, config) -> tuple[list, dict]:
-    """Fetch Kalshi markets and orderbooks."""
+async def fetch_kalshi_markets_and_books(limit: int, is_sandbox: bool, config, override_tickers: list[str] = None) -> tuple[list, dict]:
+    """Fetch Kalshi markets and orderbooks, prioritizing overrides if provided."""
     print(f"\n[Kalshi] Connecting to {'SANDBOX' if is_sandbox else 'PRODUCTION'} API...")
     try:
         client = KalshiClient.from_config(config, is_sandbox=is_sandbox)
         async with client:
+            if override_tickers:
+                tickers = list(override_tickers[:limit])
+                print(f"   --> Querying {len(tickers)} override market tickers from Kalshi...")
+                orderbooks = await client.get_orderbooks(tickers)
+                print(f"   --> Retrieved {len(orderbooks)} Kalshi orderbooks.")
+                mkts = [KalshiMarket(ticker=t, title=t, status="open") for t in tickers]
+                return mkts, orderbooks
+
             all_markets = []
             if not is_sandbox:
                 for s in ["KXINX", "KXBTC", "KXETH", "KXNDX"]:
@@ -71,12 +79,20 @@ async def fetch_kalshi_markets_and_books(limit: int, is_sandbox: bool, config) -
         return [], {}
 
 
-async def fetch_polymarket_markets_and_books(limit: int, config) -> tuple[list, dict]:
-    """Fetch Polymarket markets and orderbooks."""
+async def fetch_polymarket_markets_and_books(limit: int, config, override_conditions: list[str] = None) -> tuple[list, dict]:
+    """Fetch Polymarket markets and orderbooks, prioritizing overrides if provided."""
     print(f"\n[Polymarket] Connecting to live Gamma & CLOB APIs...")
     try:
         client = PolymarketClient.from_config(config)
         async with client:
+            if override_conditions:
+                conds = list(override_conditions[:limit])
+                print(f"   --> Querying {len(conds)} override conditions from Polymarket...")
+                orderbooks = await client.get_orderbooks(conds)
+                print(f"   --> Retrieved {len(orderbooks)} Polymarket orderbooks.")
+                mkts = [PolyMarket(ticker=c, condition_id=c, title=c, status="open") for c in conds]
+                return mkts, orderbooks
+
             markets = await client.list_markets(status="open", limit=limit, max_pages=1)
             if not markets:
                 markets = await client.list_markets(status=None, limit=limit, max_pages=1)
@@ -143,6 +159,11 @@ async def main():
     print(f"Trading Threshold: min_edge = {min_cents:.2f} cents ({config.trading.min_edge})")
     print(f"Fee Model:         taker_fee_bps = {config.trading.taker_fee_bps} bps, Polygon gas = {config.trading.polygon_gas_estimate_cents:.2f}¢")
 
+    # Load manual overrides
+    overrides = load_market_overrides("config/market_overrides.yaml")
+    override_kalshi_tickers = [ov.kalshi_ticker for ov in overrides if ov.kalshi_ticker]
+    override_poly_conditions = [ov.polymarket_condition_id for ov in overrides if ov.polymarket_condition_id]
+
     if args.sample:
         from scripts.review_matches import SAMPLE_KALSHI_MARKETS, SAMPLE_POLYMARKET_MARKETS
         from kalshi_client.models import Market as KalshiMarket
@@ -169,19 +190,19 @@ async def main():
     else:
         is_sandbox = not args.prod
         kalshi_markets, kalshi_books = await fetch_kalshi_markets_and_books(
-            limit=args.limit, is_sandbox=is_sandbox, config=config
+            limit=args.limit, is_sandbox=is_sandbox, config=config, override_tickers=override_kalshi_tickers
         )
         poly_markets, poly_books = await fetch_polymarket_markets_and_books(
-            limit=args.limit, config=config
+            limit=args.limit, config=config, override_conditions=override_poly_conditions
         )
 
-    # Load manual overrides
-    overrides = load_market_overrides("config/market_overrides.yaml")
     matched_pairs: list[Any] = []
     seen_pair_keys: set[tuple[str, str]] = set()
 
     # Map overrides
     for ov in overrides:
+        if not ov.polymarket_condition_id:
+            continue
         pair_key = (ov.kalshi_ticker, ov.polymarket_condition_id)
         if pair_key not in seen_pair_keys:
             seen_pair_keys.add(pair_key)
@@ -196,9 +217,9 @@ async def main():
                 )
             )
 
-    # Also fuzzy match fetched markets if available
-    if kalshi_markets and poly_markets:
-        matcher = MarketMatcher(min_similarity=config.matching.min_similarity)
+    # Also fuzzy match fetched markets if available and not in overrides_only mode
+    if kalshi_markets and poly_markets and not getattr(config.matching, "overrides_only", False):
+        matcher = MarketMatcher.from_config(config)
         fuzzy_matches = matcher.match(kalshi_markets, poly_markets)
         for fm in fuzzy_matches:
             pair_key = (fm.kalshi_ticker, fm.polymarket_condition_id)

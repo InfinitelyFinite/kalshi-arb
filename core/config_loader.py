@@ -136,6 +136,10 @@ class MatchingConfig(BaseModel):
         default="config/market_overrides.yaml",
         description="Path to manual market overrides YAML file",
     )
+    overrides_only: bool = Field(
+        default=False,
+        description="If True, only scan markets in market_overrides.yaml and skip fuzzy similarity matching",
+    )
 
 
 class AppConfig(BaseModel):

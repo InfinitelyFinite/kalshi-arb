@@ -176,11 +176,12 @@ async def run_pipeline(
                     for s in kalshi_states
                     if s.raw_orderbook is not None
                 }
-                poly_books = {
-                    s.ticker: s.raw_orderbook
-                    for s in poly_states
-                    if s.raw_orderbook is not None
-                }
+                poly_books = {}
+                for s in poly_states:
+                    if s.raw_orderbook is not None:
+                        poly_books[s.ticker] = s.raw_orderbook
+                        if s.condition_id:
+                            poly_books[s.condition_id] = s.raw_orderbook
 
                 cross_opps = find_cross_platform_opportunities(
                     matched_pairs=matches,

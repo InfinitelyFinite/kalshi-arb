@@ -3,46 +3,86 @@
 #
 # Schema:
 # - kalshi_ticker: "<Kalshi Market Ticker>"
-#   polymarket_condition_id: "<Polymarket Condition ID (0x...) or Market ID>"
+#   polymarket_condition_id: "<Polymarket Condition ID (0x...) or Market ID or null>"
 #   notes: "Optional description or context about this verified match"
 
 overrides:
-  - kalshi_ticker: "FED-26MAY-T500"
-    polymarket_condition_id: "0x8f34a123bc901e4a77d562145b23e89fbc321456a7d8e9f0123456789abcdef0"
-    notes: "Federal Reserve interest rate target decision for May 2026 meeting"
+  - kalshi_ticker: "KXPRESNOMD-28-GN"
+    polymarket_condition_id: "0x0f49db97f71c68b1e42a6d16e3de93d85dbf7d4148e3f018eb79e88554be9f75"
+    notes: "Gavin Newsom wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "PRES-2028-DEM"
-    polymarket_condition_id: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b"
-    notes: "Democratic Party nominee for 2028 US Presidential Election"
+  - kalshi_ticker: "KXPRESNOMD-28-AOC"
+    polymarket_condition_id: "0xe6bcc2f1dd025ce5e1833190f7c60a71171c94f805df55b9ab0ded695ec93565"
+    notes: "Alexandria Ocasio-Cortez wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "BTC-100K-2026"
-    polymarket_condition_id: "0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d"
-    notes: "Bitcoin price reaches or exceeds $100,000 before end of 2026"
+  - kalshi_ticker: "KXPRESNOMD-28-KH"
+    polymarket_condition_id: "0x909659c9436228e2be56d5582ba6188166f2f8bf3c596335512c8f2e380d01ec"
+    notes: "Kamala Harris wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "CPI-26APR-T30"
-    polymarket_condition_id: "0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f"
-    notes: "US Annual CPI Inflation rate >= 3.0% for April 2026"
+  - kalshi_ticker: "KXPRESNOMD-28-JOSS"
+    polymarket_condition_id: "0x74dba1ce1ae9dd535414e85f2d9ab5ea32c0fb1acc9b7130b67e6d91217e24e1"
+    notes: "Jon Ossoff wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "ETH-5K-2026"
-    polymarket_condition_id: "0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b"
-    notes: "Ethereum price reaches $5,000 in 2026"
+  - kalshi_ticker: "KXPRESNOMD-28-PB"
+    polymarket_condition_id: "0x4c325469d9b516ef4e6b8f73a81a12607dec075e3c2fd454f91765aaeafc4760"
+    notes: "Pete Buttigieg wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "KX-RECESSION-2026"
-    polymarket_condition_id: "0xd3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4"
-    notes: "US economic recession official declaration in 2026"
+  - kalshi_ticker: "KXPRESNOMD-28-AB"
+    polymarket_condition_id: "0x1d519b87999e3d4e90e1e8f57b5eee73a0ba488ff3fdb70867f294733aba84a9"
+    notes: "Andy Beshear wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "KX-OSCARS-2026-PIC"
-    polymarket_condition_id: "0x9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d"
-    notes: "Oscars 2026 Best Picture Academy Award Winner"
+  - kalshi_ticker: "KXPRESNOMD-28-JS"
+    polymarket_condition_id: "0xd65891729ce093cc12236856837eba1a0872fc7998fd4294c21346f7db68079c"
+    notes: "Josh Shapiro wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "KX-SUPERBOWL-2027"
-    polymarket_condition_id: "0xb1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2"
-    notes: "Super Bowl LXI Champion winner in 2027"
+  - kalshi_ticker: "KXPRESNOMD-28-MK"
+    polymarket_condition_id: "0x36db77c539bcc8c7bf0686c1b99f30c5a5eed1f53d3b3a27a071550c81f83701"
+    notes: "Mark Kelly wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "UNEMP-26JUN-T45"
-    polymarket_condition_id: "0xe5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6"
-    notes: "US National Unemployment Rate >= 4.5% in June 2026"
+  - kalshi_ticker: "KXPRESNOMD-28-REMA"
+    polymarket_condition_id: "0x3dc47a72ac6bb265e9cefebd2a2eeed00966394cb2d07245b5c94138b60e82a3"
+    notes: "Rahm Emanuel wins 2028 Democratic nomination"
 
-  - kalshi_ticker: "INX-6K-2026"
-    polymarket_condition_id: "0xf7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8"
-    notes: "S&P 500 Index closes above 6,000 before end of 2026"
+  - kalshi_ticker: "KXPRESNOMD-28-MO"
+    polymarket_condition_id: "0x3e218c99a1335641b3a5ee6c887521d19b0c28fddd6b99c254a07968e35c0b1b"
+    notes: "Michelle Obama wins 2028 Democratic nomination"
+
+  - kalshi_ticker: "KXPRESNOMD-28-WM"
+    polymarket_condition_id: "0x61d9486c0f7e14ed98f3b177b6adcb3cd45646c92e8bbfbf209789b86472d4b6"
+    notes: "Wes Moore wins 2028 Democratic nomination"
+
+  - kalshi_ticker: "KXPRESNOMD-28-RW"
+    polymarket_condition_id: "0xdce84960dce38aa4a5800a5eba7c9ac34d2ce49ba9d44c42572c472d468af264"
+    notes: "Raphael Warnock wins 2028 Democratic nomination"
+
+  - kalshi_ticker: "KXPRESNOMD-28-CBOO"
+    polymarket_condition_id: "0x1970bcce75e3674660917ae4685b433a9b1e0152d810a8d7c346dfd5e00694c2"
+    notes: "Cory Booker wins 2028 Democratic nomination"
+
+  - kalshi_ticker: "KXPRESNOMD-28-GW"
+    polymarket_condition_id: "0xe39adea057926dc197fe30a441f57a340b2a232d5a687010f78bba9b6e02620f"
+    notes: "Gretchen Whitmer wins 2028 Democratic nomination"
+
+  - kalshi_ticker: "KXPRESNOMR-28-JDV"
+    polymarket_condition_id: null
+    notes: "J.D. Vance wins 2028 Republican nomination"
+
+  - kalshi_ticker: "KXPRESNOMR-28-MR"
+    polymarket_condition_id: null
+    notes: "Marco Rubio wins 2028 Republican nomination"
+
+  - kalshi_ticker: "KXPRESNOMR-28-RDS"
+    polymarket_condition_id: null
+    notes: "Ron DeSantis wins 2028 Republican nomination"
+
+  - kalshi_ticker: "KXPRESNOMR-28-TCAR"
+    polymarket_condition_id: null
+    notes: "Tucker Carlson wins 2028 Republican nomination"
+
+  - kalshi_ticker: "KXPRESNOMR-28-TC"
+    polymarket_condition_id: null
+    notes: "Ted Cruz wins 2028 Republican nomination"
+
+  - kalshi_ticker: "KXPRESNOMR-28-DJTJR"
+    polymarket_condition_id: null
+    notes: "Donald Trump Jr. wins 2028 Republican nomination"
