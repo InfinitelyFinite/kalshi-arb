@@ -88,17 +88,32 @@ SAMPLE_POLYMARKET_MARKETS = [
 
 async def fetch_live_markets(
     limit: int = 100,
+    overrides_only: bool = False,
+    overrides_path: Union[str, Path] = "config/market_overrides.yaml",
 ) -> tuple[list[Any], list[Any], str]:
     """Fetch live market lists from Kalshi and Polymarket REST APIs.
 
-    Queries real event markets across politics, elections, economics, culture,
-    and finance rather than auto-generated sports parlay bets.
-    Falls back to sample dataset if APIs are unreachable or offline.
+    If overrides_only is True, loads verified markets directly from the overrides configuration.
+    Otherwise queries real event markets across politics, elections, economics, culture,
+    and finance, falling back to sample dataset if APIs are unreachable.
     """
     config = load_config()
     kalshi_markets: list[Any] = []
     poly_markets: list[Any] = []
+
+    if overrides_only:
+        ov_list = load_market_overrides(overrides_path)
+        for ov in ov_list:
+            if ov.kalshi_ticker and not any(k.ticker == ov.kalshi_ticker for k in kalshi_markets):
+                k_title = ov.notes or ov.kalshi_title or ov.kalshi_ticker
+                kalshi_markets.append(KalshiMarket(ticker=ov.kalshi_ticker, title=k_title, status="open"))
+            if ov.polymarket_condition_id and not any(p.condition_id == ov.polymarket_condition_id for p in poly_markets):
+                p_title = ov.notes or ov.polymarket_title or ov.polymarket_condition_id
+                poly_markets.append(PolyMarket(ticker=ov.polymarket_condition_id, condition_id=ov.polymarket_condition_id, title=p_title, status="open"))
+        return kalshi_markets, poly_markets, "verified market overrides"
+
     source_desc = "live"
+
 
     # 1. Fetch Polymarket markets from events & CLOB
     try:
@@ -290,6 +305,12 @@ def main() -> None:
         help="Path to market overrides YAML file.",
     )
     parser.add_argument(
+        "--overrides-only",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Only match verified override pairs (defaults to config: matching.overrides_only).",
+    )
+    parser.add_argument(
         "--sample",
         action="store_true",
         help="Use built-in representative sample dataset instead of querying APIs.",
@@ -304,18 +325,31 @@ def main() -> None:
         else config.matching.min_similarity
     )
     overrides_path = Path(args.overrides_file)
+    overrides_only = (
+        args.overrides_only
+        if args.overrides_only is not None
+        else getattr(getattr(config, "matching", None), "overrides_only", True)
+    )
 
     if args.sample:
         k_markets = [KalshiMarket.model_validate(m) for m in SAMPLE_KALSHI_MARKETS]
         p_markets = [PolyMarket.model_validate(m) for m in SAMPLE_POLYMARKET_MARKETS]
         source_name = "offline sample dataset"
     else:
-        k_markets, p_markets, source_name = asyncio.run(fetch_live_markets(limit=args.limit))
+        k_markets, p_markets, source_name = asyncio.run(
+            fetch_live_markets(
+                limit=args.limit,
+                overrides_only=overrides_only,
+                overrides_path=overrides_path,
+            )
+        )
 
     matcher = MarketMatcher(
         min_similarity=min_similarity,
         overrides_path=overrides_path,
+        overrides_only=overrides_only,
     )
+
 
     matches = matcher.match(k_markets, p_markets)
 
