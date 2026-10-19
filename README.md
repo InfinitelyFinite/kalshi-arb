@@ -153,6 +153,15 @@ Every orderbook tick and detected spread is persisted into a local, columnar **D
 - **Duration & Half-Life:** How many milliseconds/seconds does a mispriced spread last before being corrected?
 - **Depth & Capacity:** How much volume can be absorbed before slippage eliminates the edge?
 
+```bash
+# Replay snapshots at 100x speed for a historical date range:
+python scripts/run_replay.py --speed 100 --from 2026-08-01 --to 2026-08-15
+
+# Instantaneous full replay across recorded history with JSON export:
+python scripts/run_replay.py --speed 0 --output-json data/replay_report.json
+```
+
+
 ---
 
 ## 💻 Tech Stack

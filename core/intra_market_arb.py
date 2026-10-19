@@ -142,6 +142,7 @@ def _extract_market_info(market: Any) -> tuple[str, str, Optional[int], Optional
 def find_intra_market_opportunities(
     markets: Sequence[Any],
     config: Optional[AppConfig] = None,
+    min_edge: Optional[float] = None,
 ) -> list[Opportunity]:
     """Scan a list of prediction markets for intra-market arbitrage opportunities.
 
@@ -150,11 +151,12 @@ def find_intra_market_opportunities(
         edge = 100 - gross_cost (in cents)
         net_edge = edge - estimated_fees
 
-    If `net_edge > config.trading.min_edge` (converted to cents), an Opportunity is emitted.
+    If `net_edge > min_edge` (converted to cents), an Opportunity is emitted.
 
     Args:
         markets: Sequence of Market or Orderbook instances to evaluate.
         config: Application configuration. If None, loads defaults via `load_config()`.
+        min_edge: Optional threshold override in cents or decimal ratio (<1.0).
 
     Returns:
         List of Opportunity models representing viable intra-market arbitrage trades.
@@ -163,10 +165,14 @@ def find_intra_market_opportunities(
         config = load_config()
 
     # Convert min_edge to cents. If min_edge < 1.0 (e.g. 0.02 = 2%), convert to 2.0 cents.
-    min_edge_val = config.trading.min_edge
-    min_edge_cents = min_edge_val * 100.0 if min_edge_val < 1.0 else float(min_edge_val)
+    if min_edge is not None:
+        min_edge_cents = min_edge * 100.0 if 0 < min_edge < 1.0 else float(min_edge)
+    else:
+        min_edge_val = config.trading.min_edge
+        min_edge_cents = min_edge_val * 100.0 if min_edge_val < 1.0 else float(min_edge_val)
 
     opportunities: list[Opportunity] = []
+
 
     for market in markets:
         # Skip markets that are closed or settled
