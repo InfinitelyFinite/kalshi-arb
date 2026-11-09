@@ -1,0 +1,86 @@
+{
+  "generated_at_utc": "2026-11-09T16:54:29.540126+00:00",
+  "target_dataset": "research_snapshots",
+  "overall_reliability": "unreliable",
+  "time_window": {
+    "start_utc": "2026-11-09T13:57:05.210245",
+    "end_utc": "2026-11-09T15:55:01.048071",
+    "span_hours": 1.97
+  },
+  "snapshot_counts": {
+    "total_analyzed": 104440,
+    "expected_snapshots": 119,
+    "coverage_pct": 100.0,
+    "raw_total_in_db": 2600482,
+    "raw_legacy_unverified": 2494242
+  },
+  "gaps": {
+    "gap_threshold_seconds": 300.0,
+    "count": 1,
+    "incidents": [
+      {
+        "start_utc": "2026-11-09T15:10:59.257021",
+        "end_utc": "2026-11-09T15:51:56.516525",
+        "duration_seconds": 2457.3
+      }
+    ]
+  },
+  "quote_freshness": {
+    "missing_exchange_ts_count": 40,
+    "missing_exchange_ts_pct": 0.04,
+    "stale_quote_count": 0,
+    "stale_quote_pct": 0.0,
+    "quote_age_median_sec": 0.0,
+    "quote_age_p95_sec": 0.0
+  },
+  "liquidity_and_depth": {
+    "empty_books_count": 0,
+    "empty_books_pct": 0.0,
+    "one_sided_count": 0,
+    "one_sided_pct": 0.0,
+    "crossed_books_count": 522,
+    "crossed_books_pct": 0.5,
+    "fillability": {
+      "size_1_pct": 100.0,
+      "size_10_pct": 100.0,
+      "size_50_pct": 100.0
+    }
+  },
+  "cross_platform_skew": {
+    "pairs_evaluated": 52200,
+    "observed_skew_median_ms": 0.0,
+    "observed_skew_p95_ms": 0.0,
+    "quote_skew_median_ms": 0.0,
+    "quote_skew_p95_ms": 0.0
+  },
+  "entities": {
+    "platforms": [
+      "kalshi",
+      "polymarket"
+    ],
+    "tickers_count": 40,
+    "pairs_count": 20,
+    "pairs": [
+      "dem-nom-2028-alexandria-ocasio-cortez",
+      "dem-nom-2028-andy-beshear",
+      "dem-nom-2028-cory-booker",
+      "dem-nom-2028-gavin-newsom",
+      "dem-nom-2028-gretchen-whitmer",
+      "dem-nom-2028-jon-ossoff",
+      "dem-nom-2028-josh-shapiro",
+      "dem-nom-2028-kamala-harris",
+      "dem-nom-2028-mark-kelly",
+      "dem-nom-2028-michelle-obama",
+      "dem-nom-2028-pete-buttigieg",
+      "dem-nom-2028-rahm-emanuel",
+      "dem-nom-2028-raphael-warnock",
+      "dem-nom-2028-wes-moore",
+      "rep-nom-2028-donald-trump-jr",
+      "rep-nom-2028-jd-vance",
+      "rep-nom-2028-marco-rubio",
+      "rep-nom-2028-ron-desantis",
+      "rep-nom-2028-ted-cruz",
+      "rep-nom-2028-tucker-carlson"
+    ]
+  }
+}

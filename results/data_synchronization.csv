@@ -1,0 +1,9 @@
+Metric,Value
+UsableSynchronizedPct,99.92
+TotalPairIntervals,52240
+SynchronizedIntervals,52200
+MedianQuoteSkewMs,0.0
+P95QuoteSkewMs,0.0
+MedianQuoteAgeSec,0.0
+P95QuoteAgeSec,0.0
+MissingExchangeTsPct,0.0

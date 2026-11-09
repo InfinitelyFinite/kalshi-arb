@@ -1,0 +1,5 @@
+Threshold,SurvivingCount,SurvivalPct
+>=0s,35295,100.0
+>=5s,4,0.01
+>=10s,4,0.01
+>=30s,3,0.01

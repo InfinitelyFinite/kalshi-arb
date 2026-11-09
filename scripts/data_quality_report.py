@@ -49,6 +49,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--duckdb-path",
+        "--db",
+        dest="duckdb_path",
         type=str,
         default="data/snapshots.duckdb",
         help="Path to DuckDB database file (default: data/snapshots.duckdb)",
@@ -69,6 +71,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-dir",
+        "--out",
+        dest="output_dir",
         type=str,
         default="reports",
         help="Directory to save output reports (default: reports)",

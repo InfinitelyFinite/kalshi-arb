@@ -1,0 +1,6 @@
+Stage,Count,ConversionPct
+1_total_pair_evaluations,104400,
+2_raw_pricing_opportunities,42378,
+3_fee_adjusted_opportunities,35295,
+4_executable_candidate_observations,35295,
+5_distinct_executable_episodes,35295,

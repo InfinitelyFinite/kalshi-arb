@@ -193,7 +193,22 @@ def connect(path: Union[str, Path], read_only: bool = False) -> duckdb.DuckDBPyC
     target = str(path)
     if target != ":memory:" and not read_only:
         Path(target).parent.mkdir(parents=True, exist_ok=True)
-    return duckdb.connect(target, read_only=read_only)
+    try:
+        return duckdb.connect(target, read_only=read_only)
+    except duckdb.IOException as e:
+        if read_only and "Conflicting lock is held" in str(e) and target != ":memory:":
+            import shutil
+            logger.warning(
+                "DuckDB file %s is locked by an active writer. Connecting via a safe read-only snapshot copy.",
+                target,
+            )
+            copy_path = Path(target).with_suffix(".readonly_snapshot.duckdb")
+            shutil.copy2(target, copy_path)
+            wal_path = Path(str(target) + ".wal")
+            if wal_path.exists():
+                shutil.copy2(wal_path, Path(str(copy_path) + ".wal"))
+            return duckdb.connect(str(copy_path), read_only=True)
+        raise
 
 
 def _existing_columns(conn: duckdb.DuckDBPyConnection, table: str) -> dict[str, str]:
