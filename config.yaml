@@ -33,7 +33,7 @@ matching:
 pair_registry:
   min_verified_pairs: 10
   max_verified_pairs: 20
-  min_categories: 3
+  min_categories: 1
   gate_interval_minutes: 30        # collection gate re-checks pair tradability this often
   close_time_mismatch_hours: 24    # warn if Kalshi/Polymarket expected close differ by more
 

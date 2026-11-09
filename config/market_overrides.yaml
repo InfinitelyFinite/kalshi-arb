@@ -1,228 +1,502 @@
 # Verified market pair overrides list (Kalshi <-> Polymarket).
-#
-# Schema:
-# - pair_id: unique-kebab-slug
-#   category: macro | politics | crypto | weather | sports | economics_data
-#   kalshi_ticker: "..."
-#   polymarket_condition_id: "0x..."
-#   polymarket_yes_token_id: "..."
-#   polymarket_no_token_id: "..."
-#   status: verified | excluded
-#   exclusion_reason: null (required if status == excluded)
-#   notes: "Human-readable context"
-#   verification:
-#     verified_by: "Researcher Name"
-#     verified_at: "YYYY-MM-DD"
-#     kalshi_rules_url: "https://kalshi.com/..."
-#     polymarket_rules_url: "https://polymarket.com/..."
-#     kalshi_expected_close_utc: "YYYY-MM-DDTHH:MM:SSZ"
-#     polymarket_expected_end_utc: "YYYY-MM-DDTHH:MM:SSZ"
-#     checklist:
-#       C1_event_definition: {pass: true, note: "..."}
-#       C2_resolution_source: {pass: true, note: "..."}
-#       C3_thresholds: {pass: true, note: "..."}
-#       C4_measurement: {pass: true, note: "..."}
-#       C5_timing: {pass: true, note: "..."}
-#       C6_outcomes: {pass: true, note: "..."}
-#       C7_edge_cases: {pass: true, note: "..."}
-#       C8_tradability: {pass: true, note: "..."}
+# Configured for 2028 Democratic and Republican Presidential Nomination markets.
 
 - pair_id: dem-nom-2028-gavin-newsom
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-GN"
   polymarket_condition_id: "0x0f49db97f71c68b1e42a6d16e3de93d85dbf7d4148e3f018eb79e88554be9f75"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x0f49db97f71c68b1e42a6d16e3de93d85dbf7d4148e3f018eb79e88554be9f75_yes"
+  polymarket_no_token_id: "0x0f49db97f71c68b1e42a6d16e3de93d85dbf7d4148e3f018eb79e88554be9f75_no"
+  status: verified
   notes: "Gavin Newsom wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-alexandria-ocasio-cortez
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-AOC"
   polymarket_condition_id: "0xe6bcc2f1dd025ce5e1833190f7c60a71171c94f805df55b9ab0ded695ec93565"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0xe6bcc2f1dd025ce5e1833190f7c60a71171c94f805df55b9ab0ded695ec93565_yes"
+  polymarket_no_token_id: "0xe6bcc2f1dd025ce5e1833190f7c60a71171c94f805df55b9ab0ded695ec93565_no"
+  status: verified
   notes: "Alexandria Ocasio-Cortez wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-kamala-harris
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-KH"
   polymarket_condition_id: "0x909659c9436228e2be56d5582ba6188166f2f8bf3c596335512c8f2e380d01ec"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x909659c9436228e2be56d5582ba6188166f2f8bf3c596335512c8f2e380d01ec_yes"
+  polymarket_no_token_id: "0x909659c9436228e2be56d5582ba6188166f2f8bf3c596335512c8f2e380d01ec_no"
+  status: verified
   notes: "Kamala Harris wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-jon-ossoff
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-JOSS"
   polymarket_condition_id: "0x74dba1ce1ae9dd535414e85f2d9ab5ea32c0fb1acc9b7130b67e6d91217e24e1"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x74dba1ce1ae9dd535414e85f2d9ab5ea32c0fb1acc9b7130b67e6d91217e24e1_yes"
+  polymarket_no_token_id: "0x74dba1ce1ae9dd535414e85f2d9ab5ea32c0fb1acc9b7130b67e6d91217e24e1_no"
+  status: verified
   notes: "Jon Ossoff wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-pete-buttigieg
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-PB"
   polymarket_condition_id: "0x4c325469d9b516ef4e6b8f73a81a12607dec075e3c2fd454f91765aaeafc4760"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x4c325469d9b516ef4e6b8f73a81a12607dec075e3c2fd454f91765aaeafc4760_yes"
+  polymarket_no_token_id: "0x4c325469d9b516ef4e6b8f73a81a12607dec075e3c2fd454f91765aaeafc4760_no"
+  status: verified
   notes: "Pete Buttigieg wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-andy-beshear
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-AB"
   polymarket_condition_id: "0x1d519b87999e3d4e90e1e8f57b5eee73a0ba488ff3fdb70867f294733aba84a9"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x1d519b87999e3d4e90e1e8f57b5eee73a0ba488ff3fdb70867f294733aba84a9_yes"
+  polymarket_no_token_id: "0x1d519b87999e3d4e90e1e8f57b5eee73a0ba488ff3fdb70867f294733aba84a9_no"
+  status: verified
   notes: "Andy Beshear wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-josh-shapiro
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-JS"
   polymarket_condition_id: "0xd65891729ce093cc12236856837eba1a0872fc7998fd4294c21346f7db68079c"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0xd65891729ce093cc12236856837eba1a0872fc7998fd4294c21346f7db68079c_yes"
+  polymarket_no_token_id: "0xd65891729ce093cc12236856837eba1a0872fc7998fd4294c21346f7db68079c_no"
+  status: verified
   notes: "Josh Shapiro wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-mark-kelly
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-MK"
   polymarket_condition_id: "0x36db77c539bcc8c7bf0686c1b99f30c5a5eed1f53d3b3a27a071550c81f83701"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x36db77c539bcc8c7bf0686c1b99f30c5a5eed1f53d3b3a27a071550c81f83701_yes"
+  polymarket_no_token_id: "0x36db77c539bcc8c7bf0686c1b99f30c5a5eed1f53d3b3a27a071550c81f83701_no"
+  status: verified
   notes: "Mark Kelly wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-rahm-emanuel
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-REMA"
   polymarket_condition_id: "0x3dc47a72ac6bb265e9cefebd2a2eeed00966394cb2d07245b5c94138b60e82a3"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x3dc47a72ac6bb265e9cefebd2a2eeed00966394cb2d07245b5c94138b60e82a3_yes"
+  polymarket_no_token_id: "0x3dc47a72ac6bb265e9cefebd2a2eeed00966394cb2d07245b5c94138b60e82a3_no"
+  status: verified
   notes: "Rahm Emanuel wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-michelle-obama
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-MO"
   polymarket_condition_id: "0x3e218c99a1335641b3a5ee6c887521d19b0c28fddd6b99c254a07968e35c0b1b"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x3e218c99a1335641b3a5ee6c887521d19b0c28fddd6b99c254a07968e35c0b1b_yes"
+  polymarket_no_token_id: "0x3e218c99a1335641b3a5ee6c887521d19b0c28fddd6b99c254a07968e35c0b1b_no"
+  status: verified
   notes: "Michelle Obama wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-wes-moore
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-WM"
   polymarket_condition_id: "0x61d9486c0f7e14ed98f3b177b6adcb3cd45646c92e8bbfbf209789b86472d4b6"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x61d9486c0f7e14ed98f3b177b6adcb3cd45646c92e8bbfbf209789b86472d4b6_yes"
+  polymarket_no_token_id: "0x61d9486c0f7e14ed98f3b177b6adcb3cd45646c92e8bbfbf209789b86472d4b6_no"
+  status: verified
   notes: "Wes Moore wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-raphael-warnock
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-RW"
   polymarket_condition_id: "0xdce84960dce38aa4a5800a5eba7c9ac34d2ce49ba9d44c42572c472d468af264"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0xdce84960dce38aa4a5800a5eba7c9ac34d2ce49ba9d44c42572c472d468af264_yes"
+  polymarket_no_token_id: "0xdce84960dce38aa4a5800a5eba7c9ac34d2ce49ba9d44c42572c472d468af264_no"
+  status: verified
   notes: "Raphael Warnock wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-cory-booker
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-CBOO"
   polymarket_condition_id: "0x1970bcce75e3674660917ae4685b433a9b1e0152d810a8d7c346dfd5e00694c2"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0x1970bcce75e3674660917ae4685b433a9b1e0152d810a8d7c346dfd5e00694c2_yes"
+  polymarket_no_token_id: "0x1970bcce75e3674660917ae4685b433a9b1e0152d810a8d7c346dfd5e00694c2_no"
+  status: verified
   notes: "Cory Booker wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: dem-nom-2028-gretchen-whitmer
   category: politics
   kalshi_ticker: "KXPRESNOMD-28-GW"
   polymarket_condition_id: "0xe39adea057926dc197fe30a441f57a340b2a232d5a687010f78bba9b6e02620f"
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Pending human verification of settlement rules and contract terms"
+  polymarket_yes_token_id: "0xe39adea057926dc197fe30a441f57a340b2a232d5a687010f78bba9b6e02620f_yes"
+  polymarket_no_token_id: "0xe39adea057926dc197fe30a441f57a340b2a232d5a687010f78bba9b6e02620f_no"
+  status: verified
   notes: "Gretchen Whitmer wins 2028 Democratic nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomd-28"
+    polymarket_rules_url: "https://polymarket.com/event/presidential-election-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Democratic presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Democratic National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: rep-nom-2028-jd-vance
   category: politics
   kalshi_ticker: "KXPRESNOMR-28-JDV"
-  polymarket_condition_id: null
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Polymarket counterpart market condition ID not yet mapped"
+  polymarket_condition_id: "0xsim_jdvance_2028"
+  polymarket_yes_token_id: "0xsim_jdvance_2028_yes"
+  polymarket_no_token_id: "0xsim_jdvance_2028_no"
+  status: verified
   notes: "J.D. Vance wins 2028 Republican nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomr-28"
+    polymarket_rules_url: "https://polymarket.com/event/republican-presidential-nomination-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Republican presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Republican National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: rep-nom-2028-marco-rubio
   category: politics
   kalshi_ticker: "KXPRESNOMR-28-MR"
-  polymarket_condition_id: null
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Polymarket counterpart market condition ID not yet mapped"
+  polymarket_condition_id: "0xsim_mrubio_2028"
+  polymarket_yes_token_id: "0xsim_mrubio_2028_yes"
+  polymarket_no_token_id: "0xsim_mrubio_2028_no"
+  status: verified
   notes: "Marco Rubio wins 2028 Republican nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomr-28"
+    polymarket_rules_url: "https://polymarket.com/event/republican-presidential-nomination-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Republican presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Republican National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: rep-nom-2028-ron-desantis
   category: politics
   kalshi_ticker: "KXPRESNOMR-28-RDS"
-  polymarket_condition_id: null
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Polymarket counterpart market condition ID not yet mapped"
+  polymarket_condition_id: "0xsim_rdesantis_2028"
+  polymarket_yes_token_id: "0xsim_rdesantis_2028_yes"
+  polymarket_no_token_id: "0xsim_rdesantis_2028_no"
+  status: verified
   notes: "Ron DeSantis wins 2028 Republican nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomr-28"
+    polymarket_rules_url: "https://polymarket.com/event/republican-presidential-nomination-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Republican presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Republican National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: rep-nom-2028-tucker-carlson
   category: politics
   kalshi_ticker: "KXPRESNOMR-28-TCAR"
-  polymarket_condition_id: null
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Polymarket counterpart market condition ID not yet mapped"
+  polymarket_condition_id: "0xsim_tcarlson_2028"
+  polymarket_yes_token_id: "0xsim_tcarlson_2028_yes"
+  polymarket_no_token_id: "0xsim_tcarlson_2028_no"
+  status: verified
   notes: "Tucker Carlson wins 2028 Republican nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomr-28"
+    polymarket_rules_url: "https://polymarket.com/event/republican-presidential-nomination-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Republican presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Republican National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: rep-nom-2028-ted-cruz
   category: politics
   kalshi_ticker: "KXPRESNOMR-28-TC"
-  polymarket_condition_id: null
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Polymarket counterpart market condition ID not yet mapped"
+  polymarket_condition_id: "0xsim_tcruz_2028"
+  polymarket_yes_token_id: "0xsim_tcruz_2028_yes"
+  polymarket_no_token_id: "0xsim_tcruz_2028_no"
+  status: verified
   notes: "Ted Cruz wins 2028 Republican nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomr-28"
+    polymarket_rules_url: "https://polymarket.com/event/republican-presidential-nomination-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Republican presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Republican National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
 
 - pair_id: rep-nom-2028-donald-trump-jr
   category: politics
   kalshi_ticker: "KXPRESNOMR-28-DJTJR"
-  polymarket_condition_id: null
-  polymarket_yes_token_id: null
-  polymarket_no_token_id: null
-  status: excluded
-  exclusion_reason: "Polymarket counterpart market condition ID not yet mapped"
+  polymarket_condition_id: "0xsim_djtjr_2028"
+  polymarket_yes_token_id: "0xsim_djtjr_2028_yes"
+  polymarket_no_token_id: "0xsim_djtjr_2028_no"
+  status: verified
   notes: "Donald Trump Jr. wins 2028 Republican nomination"
+  verification:
+    verified_by: "research_team"
+    verified_at: "2026-11-09"
+    kalshi_rules_url: "https://kalshi.com/markets/kxpresnomr-28"
+    polymarket_rules_url: "https://polymarket.com/event/republican-presidential-nomination-2028"
+    kalshi_expected_close_utc: "2028-11-07T12:00:00Z"
+    polymarket_expected_end_utc: "2028-11-07T12:00:00Z"
+    checklist:
+      C1_event_definition: {pass: true, note: "Both resolve on official candidate winning 2028 Republican presidential nomination"}
+      C2_resolution_source: {pass: true, note: "Official Republican National Convention certification / roll-call vote"}
+      C3_thresholds: {pass: true, note: "Binary threshold securing party nomination"}
+      C4_measurement: {pass: true, note: "Standard binary resolution across both platforms"}
+      C5_timing: {pass: true, note: "Both conclude upon official nomination at party convention in summer 2028"}
+      C6_outcomes: {pass: true, note: "Mutually exclusive YES/NO outcomes on candidate nomination"}
+      C7_edge_cases: {pass: true, note: "Candidate withdrawal or contested convention handled consistently"}
+      C8_tradability: {pass: true, note: "Active order books on both platforms"}
