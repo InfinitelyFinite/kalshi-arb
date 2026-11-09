@@ -2,9 +2,70 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+
+def _to_decimal(val: Any) -> Optional[Decimal]:
+    """Exact Decimal from str/int/float; None if missing or not finite."""
+    if val is None or val == "":
+        return None
+    try:
+        d = Decimal(str(val).strip())
+    except (InvalidOperation, ValueError):
+        return None
+    return d if d.is_finite() else None
+
+
+def _dollar_levels(raw: Any) -> list[tuple[Decimal, Decimal]]:
+    """Parse [["0.4500", "10.00"], ...] (price in DOLLARS, size in contracts) -> (cents, contracts) exactly."""
+    out: list[tuple[Decimal, Decimal]] = []
+    for item in raw or []:
+        if not isinstance(item, (list, tuple)) or len(item) < 2:
+            continue
+        p, s = _to_decimal(item[0]), _to_decimal(item[1])
+        if p is not None and s is not None:
+            out.append((p * 100, s))
+    return out
+
+
+def _cent_levels(raw: Any) -> list[tuple[Decimal, Decimal]]:
+    """Parse [[45, 10], ...] (price in CENTS, size in contracts) exactly."""
+    out: list[tuple[Decimal, Decimal]] = []
+    for item in raw or []:
+        if not isinstance(item, (list, tuple)) or len(item) < 2:
+            continue
+        p, s = _to_decimal(item[0]), _to_decimal(item[1])
+        if p is not None and s is not None:
+            out.append((p, s))
+    return out
+
+
+def parse_exchange_timestamp(val: Any) -> Optional[datetime]:
+    """Parse a platform-supplied timestamp (epoch seconds/ms or ISO-8601) to aware UTC. None if absent/invalid.
+
+    The caller must never substitute the local receive time for a missing exchange timestamp.
+    """
+    if val is None or val == "" or isinstance(val, bool):
+        return None
+    try:
+        if isinstance(val, (int, float)) or (isinstance(val, str) and val.strip().replace(".", "", 1).isdigit()):
+            num = float(val)
+            if num <= 0:
+                return None
+            if num > 1e14:  # microseconds
+                num /= 1_000_000
+            elif num > 1e11:  # milliseconds
+                num /= 1000
+            return datetime.fromtimestamp(num, tz=timezone.utc)
+        if isinstance(val, datetime):
+            return val if val.tzinfo else val.replace(tzinfo=timezone.utc)
+        dt = datetime.fromisoformat(str(val).strip().replace("Z", "+00:00"))
+        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    except (ValueError, OverflowError, OSError):
+        return None
 
 
 def _parse_cents(val: Any) -> Optional[int]:
@@ -51,6 +112,7 @@ class Market(BaseModel):
     volume: Optional[int] = Field(default=0, description="Total volume or 24h volume in contracts")
     status: Optional[str] = Field(default="open", description="Market status (e.g. open, active, closed, settled)")
     close_time: Optional[Union[datetime, str]] = Field(default=None, description="Market expiration or close timestamp")
+    result: Optional[str] = Field(default=None, description="Settlement result if determined ('yes'/'no'/'')")
     event_ticker: Optional[str] = Field(default=None, description="Parent event ticker")
 
     @model_validator(mode="before")
@@ -64,11 +126,24 @@ class Market(BaseModel):
         ticker = data.get("ticker") or data.get("market_ticker")
         title = data.get("title") or data.get("market_title") or data.get("subtitle") or ""
 
-        # Parse prices (handling yes_bid_dollars, yes_bid, etc.)
-        yes_bid = _parse_cents(data.get("yes_bid") or data.get("yes_bid_dollars"))
-        yes_ask = _parse_cents(data.get("yes_ask") or data.get("yes_ask_dollars"))
-        no_bid = _parse_cents(data.get("no_bid") or data.get("no_bid_dollars"))
-        no_ask = _parse_cents(data.get("no_ask") or data.get("no_ask_dollars"))
+        # Parse prices. Units are explicit: `*_dollars` fields are DOLLARS; bare `yes_bid` etc. are integer CENTS.
+        # (The generic _parse_cents heuristic would misread a bare 1 (= 1 cent) as $1.00 = 100 cents.)
+        def price_cents(key: str) -> Optional[int]:
+            dollars = _to_decimal(data.get(f"{key}_dollars"))
+            if dollars is not None:
+                return int(round(dollars * 100))
+            raw = data.get(key)
+            if raw is None or raw == "":
+                return None
+            if isinstance(raw, str) and "." in raw:
+                return _parse_cents(raw)  # legacy dollar-formatted string
+            cents = _to_decimal(raw)
+            return int(round(cents)) if cents is not None else None
+
+        yes_bid = price_cents("yes_bid")
+        yes_ask = price_cents("yes_ask")
+        no_bid = price_cents("no_bid")
+        no_ask = price_cents("no_ask")
 
         # Parse volume
         volume = _parse_volume(
@@ -93,6 +168,7 @@ class Market(BaseModel):
             "status": status,
             "close_time": close_time,
             "event_ticker": event_ticker,
+            "result": data.get("result") or None,
         }
 
     @classmethod
@@ -115,11 +191,23 @@ class Orderbook(BaseModel):
     ticker: str = Field(description="Market ticker")
     yes_bids: list[tuple[int, int]] = Field(
         default_factory=list,
-        description="List of (price_in_cents, size_in_contracts) bids for YES side",
+        description="List of (price_in_cents, size_in_contracts) bids for YES side (legacy rounded ints)",
     )
     no_bids: list[tuple[int, int]] = Field(
         default_factory=list,
-        description="List of (price_in_cents, size_in_contracts) bids for NO side",
+        description="List of (price_in_cents, size_in_contracts) bids for NO side (legacy rounded ints)",
+    )
+    yes_bid_levels: list[tuple[Decimal, Decimal]] = Field(
+        default_factory=list,
+        description="Exact (price_cents, size_contracts) YES bids; fractional sizes/sub-cent prices preserved",
+    )
+    no_bid_levels: list[tuple[Decimal, Decimal]] = Field(
+        default_factory=list,
+        description="Exact (price_cents, size_contracts) NO bids; fractional sizes/sub-cent prices preserved",
+    )
+    exchange_updated_at: Optional[datetime] = Field(
+        default=None,
+        description="Platform-supplied book timestamp (WS message). REST orderbook responses carry none -> None",
     )
 
     @model_validator(mode="before")
@@ -131,50 +219,51 @@ class Orderbook(BaseModel):
 
         ticker = data.get("ticker", "")
 
+        exchange_ts = parse_exchange_timestamp(
+            data.get("ts") or data.get("exchange_updated_at") or data.get("updated_time")
+        )
+
+        def build(yes_levels: list[tuple[Decimal, Decimal]], no_levels: list[tuple[Decimal, Decimal]]) -> dict[str, Any]:
+            return {
+                "ticker": ticker,
+                # legacy rounded ints for existing consumers
+                "yes_bids": [(int(round(p)), int(round(s))) for p, s in yes_levels],
+                "no_bids": [(int(round(p)), int(round(s))) for p, s in no_levels],
+                "yes_bid_levels": yes_levels,
+                "no_bid_levels": no_levels,
+                "exchange_updated_at": exchange_ts,
+            }
+
         # If data has nested 'orderbook_fp' (e.g. {'orderbook_fp': {'yes_dollars': [...], 'no_dollars': [...]}})
+        # Units: prices in DOLLARS (strings), sizes in contracts (fixed-point strings, may be fractional).
         nested_fp = data.get("orderbook_fp")
         if isinstance(nested_fp, dict):
-            yes_raw = nested_fp.get("yes_dollars") or []
-            no_raw = nested_fp.get("no_dollars") or []
-            yes_bids = [
-                (int(round(float(p) * 100)), int(round(float(s))))
-                for p, s in yes_raw
-                if p is not None and s is not None
-            ]
-            no_bids = [
-                (int(round(float(p) * 100)), int(round(float(s))))
-                for p, s in no_raw
-                if p is not None and s is not None
-            ]
-            return {"ticker": ticker, "yes_bids": yes_bids, "no_bids": no_bids}
+            return build(
+                _dollar_levels(nested_fp.get("yes_dollars")),
+                _dollar_levels(nested_fp.get("no_dollars")),
+            )
 
         # If data has nested 'orderbook' (e.g. {'orderbook': {'yes': [[40, 10]], 'no': [[55, 20]]}})
+        # Units: prices in integer CENTS.
         nested_cents = data.get("orderbook")
         if isinstance(nested_cents, dict):
-            yes_raw = nested_cents.get("yes") or []
-            no_raw = nested_cents.get("no") or []
-            yes_bids = [(int(p), int(s)) for p, s in yes_raw if p is not None and s is not None]
-            no_bids = [(int(p), int(s)) for p, s in no_raw if p is not None and s is not None]
-            return {"ticker": ticker, "yes_bids": yes_bids, "no_bids": no_bids}
+            return build(_cent_levels(nested_cents.get("yes")), _cent_levels(nested_cents.get("no")))
 
-        # If raw dict contains yes_dollars / no_dollars directly
+        # If raw dict contains yes_dollars / no_dollars directly (DOLLARS)
         if "yes_dollars" in data or "no_dollars" in data:
-            yes_raw = data.get("yes_dollars") or []
-            no_raw = data.get("no_dollars") or []
-            yes_bids = [
-                (int(round(float(p) * 100)), int(round(float(s))))
-                for p, s in yes_raw
-                if p is not None and s is not None
-            ]
-            no_bids = [
-                (int(round(float(p) * 100)), int(round(float(s))))
-                for p, s in no_raw
-                if p is not None and s is not None
-            ]
-            return {"ticker": ticker, "yes_bids": yes_bids, "no_bids": no_bids}
+            return build(_dollar_levels(data.get("yes_dollars")), _dollar_levels(data.get("no_dollars")))
 
-        # Direct yes_bids / no_bids
+        # Direct yes_bids / no_bids (CENTS, ints)
         return data
+
+    @model_validator(mode="after")
+    def _fill_levels(self) -> Orderbook:
+        """Directly constructed books (WS state, fixtures, simulator) only supply int tuples: mirror to Decimal."""
+        if not self.yes_bid_levels and self.yes_bids:
+            self.yes_bid_levels = [(Decimal(p), Decimal(s)) for p, s in self.yes_bids]
+        if not self.no_bid_levels and self.no_bids:
+            self.no_bid_levels = [(Decimal(p), Decimal(s)) for p, s in self.no_bids]
+        return self
 
     @classmethod
     def from_api(cls, data: dict[str, Any], ticker: Optional[str] = None) -> Orderbook:

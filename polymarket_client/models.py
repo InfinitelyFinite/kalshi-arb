@@ -7,9 +7,63 @@ consistent downstream interface across prediction market platforms.
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+
+def _to_decimal(val: Any) -> Optional[Decimal]:
+    """Exact Decimal from str/int/float; None if missing or not finite."""
+    if val is None or val == "":
+        return None
+    try:
+        d = Decimal(str(val).strip())
+    except (InvalidOperation, ValueError):
+        return None
+    return d if d.is_finite() else None
+
+
+def _level_decimal(item: Any, price_is_dollars: bool) -> Optional[tuple[Decimal, Decimal]]:
+    """Parse one book level to exact (price_cents, size_contracts).
+
+    CLOB `/book` entries ({"price": "0.485", "size": "30.5"}) carry prices in DOLLARS (price_is_dollars=True).
+    Internal tuple inputs use the legacy heuristic (a price <= 1 is dollars, otherwise cents).
+    """
+    if isinstance(item, dict):
+        raw_p, raw_s = item.get("price"), item.get("size")
+    elif isinstance(item, (list, tuple)) and len(item) >= 2:
+        raw_p, raw_s = item[0], item[1]
+    else:
+        return None
+    p, s = _to_decimal(raw_p), _to_decimal(raw_s)
+    if p is None or s is None or s <= 0:
+        return None
+    if price_is_dollars or 0 < p <= 1:
+        p = p * 100
+    return p, s
+
+
+def parse_exchange_timestamp(val: Any) -> Optional[datetime]:
+    """Parse a platform-supplied timestamp (epoch seconds/ms or ISO-8601) to aware UTC; None if absent/invalid."""
+    if val is None or val == "" or isinstance(val, bool):
+        return None
+    try:
+        if isinstance(val, (int, float)) or (isinstance(val, str) and val.strip().replace(".", "", 1).isdigit()):
+            num = float(val)
+            if num <= 0:
+                return None
+            if num > 1e14:
+                num /= 1_000_000
+            elif num > 1e11:
+                num /= 1000
+            return datetime.fromtimestamp(num, tz=timezone.utc)
+        if isinstance(val, datetime):
+            return val if val.tzinfo else val.replace(tzinfo=timezone.utc)
+        dt = datetime.fromisoformat(str(val).strip().replace("Z", "+00:00"))
+        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    except (ValueError, OverflowError, OSError):
+        return None
 
 
 def _parse_cents(val: Any) -> Optional[int]:
@@ -93,6 +147,9 @@ class Market(BaseModel):
     slug: Optional[str] = Field(default=None, description="URL-friendly market slug")
     description: Optional[str] = Field(default=None, description="Detailed resolution rules/description")
     event_ticker: Optional[str] = Field(default=None, description="Parent event ID or slug")
+    accepting_orders: Optional[bool] = Field(default=None, description="Gamma acceptingOrders flag (None if absent)")
+    archived: Optional[bool] = Field(default=None, description="Gamma archived flag (None if absent)")
+    enable_order_book: Optional[bool] = Field(default=None, description="Gamma enableOrderBook flag (None if absent)")
 
     @property
     def yes_token_id(self) -> Optional[str]:
@@ -249,6 +306,9 @@ class Market(BaseModel):
             "slug": slug,
             "description": description,
             "event_ticker": event_ticker,
+            "accepting_orders": data.get("acceptingOrders", data.get("accepting_orders")),
+            "archived": data.get("archived"),
+            "enable_order_book": data.get("enableOrderBook", data.get("enable_order_book")),
         }
 
     @classmethod
@@ -285,6 +345,18 @@ class Orderbook(BaseModel):
     no_asks: list[tuple[int, int]] = Field(
         default_factory=list,
         description="List of (price_in_cents, size_in_contracts) asks for NO side",
+    )
+    bid_levels: list[tuple[Decimal, Decimal]] = Field(
+        default_factory=list,
+        description="Exact (price_cents, size) bids of THIS token's own book (not derived)",
+    )
+    ask_levels: list[tuple[Decimal, Decimal]] = Field(
+        default_factory=list,
+        description="Exact (price_cents, size) asks of THIS token's own book (not derived)",
+    )
+    exchange_updated_at: Optional[datetime] = Field(
+        default=None,
+        description="CLOB-supplied book timestamp (`timestamp` field, epoch ms) if present, else None",
     )
 
     @model_validator(mode="before")
@@ -374,6 +446,13 @@ class Orderbook(BaseModel):
             parsed_no_asks = [(100 - p, s) for p, s in parsed_yes_bids]
             parsed_no_asks.sort(key=lambda x: x[0])
 
+        # Exact ladders of this token's own book. CLOB entries are dollars; internal tuples use the heuristic.
+        from_clob = "bids" in data or "asks" in data
+        bid_levels = [lv for lv in (_level_decimal(b, from_clob) for b in raw_bids) if lv is not None]
+        ask_levels = [lv for lv in (_level_decimal(a, from_clob) for a in raw_asks) if lv is not None]
+        bid_levels.sort(key=lambda x: x[0], reverse=True)
+        ask_levels.sort(key=lambda x: x[0])
+
         return {
             "ticker": ticker,
             "token_id": token_id,
@@ -382,7 +461,19 @@ class Orderbook(BaseModel):
             "yes_asks": parsed_yes_asks,
             "no_bids": parsed_no_bids,
             "no_asks": parsed_no_asks,
+            "bid_levels": bid_levels,
+            "ask_levels": ask_levels,
+            "exchange_updated_at": parse_exchange_timestamp(data.get("timestamp") or data.get("exchange_updated_at")),
         }
+
+    @model_validator(mode="after")
+    def _fill_levels(self) -> Orderbook:
+        """Directly constructed books only supply int tuples: mirror them to Decimal ladders."""
+        if not self.bid_levels and self.yes_bids:
+            self.bid_levels = [(Decimal(p), Decimal(s)) for p, s in self.yes_bids]
+        if not self.ask_levels and self.yes_asks:
+            self.ask_levels = [(Decimal(p), Decimal(s)) for p, s in self.yes_asks]
+        return self
 
     @classmethod
     def from_api(cls, data: dict[str, Any], token_id: Optional[str] = None) -> Orderbook:

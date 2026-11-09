@@ -18,6 +18,7 @@ import ssl
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 from urllib.parse import urlparse
 
@@ -32,7 +33,7 @@ except ImportError:
     DEFAULT_SSL_CONTEXT = ssl.create_default_context()
 
 from kalshi_client.auth import KalshiAuth
-from kalshi_client.models import Orderbook, _parse_cents, _parse_volume
+from kalshi_client.models import Orderbook, _parse_cents, _parse_volume, _to_decimal, parse_exchange_timestamp
 
 if TYPE_CHECKING:
     from core.config_loader import AppConfig, KalshiConfig
@@ -56,6 +57,25 @@ class WSEvent:
     sid: Optional[int] = None
     seq: Optional[int] = None
     timestamp: Optional[datetime] = field(default_factory=lambda: datetime.now(timezone.utc))
+    # Platform-supplied message time (None when the message carried none). `timestamp` above is the LOCAL
+    # receive time and must never be stored as an exchange timestamp.
+    exchange_timestamp: Optional[datetime] = None
+
+
+def _to_cents(val: Any, in_dollars: Optional[bool]) -> Optional[Decimal]:
+    """Convert a WS price to exact cents.
+
+    in_dollars=True: value is dollars (fields named *_dollars*); False: value is integer cents (legacy 'yes'/'no');
+    None: unknown unit, fall back to the legacy heuristic (0 < v <= 1 means dollars).
+    """
+    d = _to_decimal(val)
+    if d is None:
+        return None
+    if in_dollars is True:
+        return d * 100
+    if in_dollars is False:
+        return d
+    return d * 100 if 0 < d <= 1 else d
 
 
 class _InMemoryBook:
@@ -63,35 +83,34 @@ class _InMemoryBook:
 
     def __init__(self, ticker: str) -> None:
         self.ticker = ticker
-        # price_in_cents -> size_in_contracts
-        self.yes_bids: dict[int, int] = {}
-        self.no_bids: dict[int, int] = {}
+        # price_in_cents -> size_in_contracts (exact Decimals)
+        self.yes_bids: dict[Decimal, Decimal] = {}
+        self.no_bids: dict[Decimal, Decimal] = {}
         self.last_seq: Optional[int] = None
+        # Exchange time of the last message applied to this book (None if the message had none).
+        self.last_exchange_ts: Optional[datetime] = None
 
     def apply_snapshot(
         self,
         yes_raw: list[Union[list[Any], tuple[Any, Any]]],
         no_raw: list[Union[list[Any], tuple[Any, Any]]],
         seq: Optional[int] = None,
+        in_dollars: Optional[bool] = None,
+        exchange_ts: Optional[datetime] = None,
     ) -> Orderbook:
         """Replace all book levels with snapshot data."""
         self.yes_bids.clear()
         self.no_bids.clear()
         self.last_seq = seq
+        self.last_exchange_ts = exchange_ts
 
-        for item in yes_raw:
-            if len(item) >= 2:
-                price = _parse_cents(item[0])
-                size = _parse_volume(item[1])
-                if price is not None and size is not None and size > 0:
-                    self.yes_bids[price] = size
-
-        for item in no_raw:
-            if len(item) >= 2:
-                price = _parse_cents(item[0])
-                size = _parse_volume(item[1])
-                if price is not None and size is not None and size > 0:
-                    self.no_bids[price] = size
+        for raw, target in ((yes_raw, self.yes_bids), (no_raw, self.no_bids)):
+            for item in raw:
+                if len(item) >= 2:
+                    price = _to_cents(item[0], in_dollars)
+                    size = _to_decimal(item[1])
+                    if price is not None and size is not None and size > 0:
+                        target[price] = size
 
         return self.to_orderbook()
 
@@ -101,11 +120,14 @@ class _InMemoryBook:
         price_val: Any,
         delta_val: Any,
         seq: Optional[int] = None,
+        in_dollars: Optional[bool] = None,
+        exchange_ts: Optional[datetime] = None,
     ) -> Orderbook:
         """Apply incremental signed volume delta to a specific price level."""
         self.last_seq = seq
-        price = _parse_cents(price_val)
-        delta = _parse_volume(delta_val)
+        self.last_exchange_ts = exchange_ts
+        price = _to_cents(price_val, in_dollars)
+        delta = _to_decimal(delta_val)
 
         if price is None or delta is None:
             return self.to_orderbook()
@@ -113,7 +135,7 @@ class _InMemoryBook:
         side_lower = side.lower().strip()
         target_dict = self.yes_bids if side_lower == "yes" else self.no_bids
 
-        current_size = target_dict.get(price, 0)
+        current_size = target_dict.get(price, Decimal(0))
         new_size = current_size + delta
 
         if new_size > 0:
@@ -129,8 +151,11 @@ class _InMemoryBook:
         sorted_no = sorted(self.no_bids.items(), key=lambda x: x[0], reverse=True)
         return Orderbook(
             ticker=self.ticker,
-            yes_bids=sorted_yes,
-            no_bids=sorted_no,
+            yes_bids=[(int(round(p)), int(round(s))) for p, s in sorted_yes],
+            no_bids=[(int(round(p)), int(round(s))) for p, s in sorted_no],
+            yes_bid_levels=sorted_yes,
+            no_bid_levels=sorted_no,
+            exchange_updated_at=self.last_exchange_ts,
         )
 
 
@@ -484,10 +509,16 @@ class KalshiWSClient:
                 self._books[ticker] = _InMemoryBook(ticker)
 
             book_obj = self._books[ticker]
+            # Unit follows the field name: *_dollars* keys are dollars, legacy 'yes'/'no' keys are cents.
+            dollar_key = next((k for k in ("yes_dollars_fp", "yes_dollars", "no_dollars_fp", "no_dollars") if msg_body.get(k)), None)
+            in_dollars = True if dollar_key else (False if (msg_body.get("yes") or msg_body.get("no")) else None)
             yes_raw = msg_body.get("yes_dollars_fp") or msg_body.get("yes_dollars") or msg_body.get("yes") or []
             no_raw = msg_body.get("no_dollars_fp") or msg_body.get("no_dollars") or msg_body.get("no") or []
+            exchange_ts = parse_exchange_timestamp(msg_body.get("ts") or data.get("ts"))
 
-            updated_book = book_obj.apply_snapshot(yes_raw, no_raw, seq=seq)
+            updated_book = book_obj.apply_snapshot(
+                yes_raw, no_raw, seq=seq, in_dollars=in_dollars, exchange_ts=exchange_ts
+            )
             await self._emit_event(
                 WSEvent(
                     event_type="snapshot",
@@ -495,6 +526,7 @@ class KalshiWSClient:
                     data=updated_book,
                     sid=sid,
                     seq=seq,
+                    exchange_timestamp=exchange_ts,
                 )
             )
 
@@ -508,10 +540,19 @@ class KalshiWSClient:
 
             book_obj = self._books[ticker]
             side = msg_body.get("side", "")
+            in_dollars = True if "price_dollars" in msg_body else (False if "price" in msg_body else None)
             price = msg_body.get("price_dollars") if "price_dollars" in msg_body else msg_body.get("price")
             delta = msg_body.get("delta_fp") if "delta_fp" in msg_body else msg_body.get("delta")
+            exchange_ts = parse_exchange_timestamp(msg_body.get("ts") or data.get("ts"))
 
-            updated_book = book_obj.apply_delta(side=side, price_val=price, delta_val=delta, seq=seq)
+            updated_book = book_obj.apply_delta(
+                side=side,
+                price_val=price,
+                delta_val=delta,
+                seq=seq,
+                in_dollars=in_dollars,
+                exchange_ts=exchange_ts,
+            )
             await self._emit_event(
                 WSEvent(
                     event_type="delta",
@@ -519,6 +560,7 @@ class KalshiWSClient:
                     data=updated_book,
                     sid=sid,
                     seq=seq,
+                    exchange_timestamp=exchange_ts,
                 )
             )
 
@@ -534,6 +576,7 @@ class KalshiWSClient:
                     data=msg_body,
                     sid=sid,
                     seq=seq,
+                    exchange_timestamp=parse_exchange_timestamp(msg_body.get("ts") or data.get("ts")),
                 )
             )
 

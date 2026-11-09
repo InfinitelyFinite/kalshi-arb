@@ -142,6 +142,47 @@ class MatchingConfig(BaseModel):
     )
 
 
+class PairRegistryConfig(BaseModel):
+    min_verified_pairs: int = Field(default=10, ge=0, description="Minimum verified pairs (error in strict mode)")
+    max_verified_pairs: int = Field(default=20, ge=1, description="Maximum verified pairs (error in strict mode)")
+    min_categories: int = Field(default=3, ge=0, description="Minimum distinct categories among verified pairs")
+    gate_interval_minutes: float = Field(
+        default=30.0, gt=0, description="How often the collection gate re-checks each verified pair's tradability"
+    )
+    close_time_mismatch_hours: float = Field(
+        default=24.0, ge=0, description="Warn when Kalshi/Polymarket expected close times differ by more than this"
+    )
+
+    @model_validator(mode="after")
+    def _check_bounds(self) -> PairRegistryConfig:
+        if self.min_verified_pairs > self.max_verified_pairs:
+            raise ValueError("min_verified_pairs must be <= max_verified_pairs")
+        return self
+
+
+class DepthConfig(BaseModel):
+    depth_levels: int = Field(default=10, ge=1, description="Top N book levels stored per side")
+    vwap_sizes: list[int] = Field(default_factory=lambda: [1, 10, 50], description="Contract sizes for VWAP/fillability")
+    ws_reconcile_seconds: float = Field(
+        default=300.0, gt=0, description="Period of full REST snapshot reconciliation of WebSocket-maintained books"
+    )
+
+    @field_validator("vwap_sizes")
+    @classmethod
+    def _positive_sizes(cls, v: list[int]) -> list[int]:
+        if not v or any(s <= 0 for s in v):
+            raise ValueError("vwap_sizes must be a non-empty list of positive integers")
+        return v
+
+
+class DataQualityConfig(BaseModel):
+    snapshot_interval_seconds: float = Field(default=60.0, gt=0, description="Expected seconds between snapshots")
+    gap_threshold_seconds: float = Field(default=300.0, gt=0, description="Gaps longer than this are reported")
+    stale_quote_seconds: float = Field(
+        default=60.0, ge=0, description="exchange_updated_at older than this vs observed_at counts as stale"
+    )
+
+
 class AppConfig(BaseModel):
     mode: ModeConfig
     kalshi: KalshiConfig
@@ -149,6 +190,9 @@ class AppConfig(BaseModel):
     trading: TradingConfig
     risk: RiskConfig
     matching: MatchingConfig
+    pair_registry: PairRegistryConfig = Field(default_factory=PairRegistryConfig)
+    depth: DepthConfig = Field(default_factory=DepthConfig)
+    data_quality: DataQualityConfig = Field(default_factory=DataQualityConfig)
 
     @model_validator(mode="after")
     def validate_environment_credentials(self) -> AppConfig:

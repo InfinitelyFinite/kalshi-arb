@@ -44,6 +44,9 @@ kalshi-*.txt
 data/cache/
 data/*.csv
 data/*.json
+reports/*.json
+reports/*.md
+!reports/.gitkeep
 
 # Logs
 logs/

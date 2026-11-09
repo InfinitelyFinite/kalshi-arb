@@ -28,3 +28,23 @@ matching:
   min_similarity: 0.85
   overrides_path: "config/market_overrides.yaml"
   overrides_only: true
+
+# Verified market pairs (config/market_overrides.yaml). Bounds are errors in strict mode, warnings otherwise.
+pair_registry:
+  min_verified_pairs: 10
+  max_verified_pairs: 20
+  min_categories: 3
+  gate_interval_minutes: 30        # collection gate re-checks pair tradability this often
+  close_time_mismatch_hours: 24    # warn if Kalshi/Polymarket expected close differ by more
+
+# Order book depth stored per snapshot
+depth:
+  depth_levels: 10                 # top N levels per side (orderbook_levels)
+  vwap_sizes: [1, 10, 50]          # contract sizes for VWAP / fillability checks
+  ws_reconcile_seconds: 300        # periodic REST reconciliation of WebSocket-maintained books
+
+# Data quality report thresholds
+data_quality:
+  snapshot_interval_seconds: 60
+  gap_threshold_seconds: 300
+  stale_quote_seconds: 60

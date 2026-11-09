@@ -194,13 +194,28 @@ class PolymarketClient:
             Optional[Market]: Parsed Market instance, or None if not found.
         """
         url = f"{self.gamma_url}/markets"
-        response = await self._request(method="GET", url=url, params={"condition_id": condition_id})
+        # `condition_ids` is Gamma's documented filter; `condition_id` is kept for older mirrors/fixtures.
+        response = await self._request(
+            method="GET",
+            url=url,
+            params={"condition_ids": condition_id, "condition_id": condition_id},
+        )
         data = response.json()
-        if isinstance(data, list) and data:
-            return Market.from_api(data[0])
-        elif isinstance(data, dict) and "conditionId" in data:
-            return Market.from_api(data)
+        items: list[Any] = []
+        if isinstance(data, list):
+            items = data
+        elif isinstance(data, dict) and ("conditionId" in data or "condition_id" in data):
+            items = [data]
+
+        wanted = condition_id.strip().lower()
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            got = str(item.get("conditionId") or item.get("condition_id") or "").strip().lower()
+            if got == wanted:
+                return Market.from_api(item)
         return None
+
 
     async def get_orderbook(self, token_id: str) -> Orderbook:
         """Retrieve the orderbook for a single Polymarket token asset ID via the CLOB API.

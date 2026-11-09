@@ -273,6 +273,25 @@ class KalshiClient:
         data = response.json()
         return Orderbook.from_api(data, ticker=ticker)
 
+    async def get_market(self, ticker: str) -> Optional[Market]:
+        """Retrieve a single market by ticker (GET /markets/{ticker}).
+
+        Returns:
+            Optional[Market]: Parsed market, or None if Kalshi answers 404 (market does not exist).
+            Any other HTTP/network error propagates so callers can distinguish "missing" from "API down".
+        """
+        try:
+            response = await self._signed_request(method="GET", path=f"/markets/{ticker}")
+        except KalshiAPIError as e:
+            if e.status_code == 404:
+                return None
+            raise
+        data = response.json()
+        payload = data.get("market") if isinstance(data, dict) else None
+        if not isinstance(payload, dict):
+            return None
+        return Market.from_api(payload)
+
     async def list_events(
         self,
         status: Optional[str] = None,

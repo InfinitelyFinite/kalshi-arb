@@ -291,6 +291,7 @@ class ReplayEngine:
         include_cross: bool = True,
         limit_snapshots: Optional[int] = None,
         on_opportunity: Optional[Callable[[Opportunity], None]] = None,
+        allow_unverified: bool = False,
     ) -> None:
         """Initialize ReplayEngine.
 
@@ -307,6 +308,7 @@ class ReplayEngine:
             include_cross: Whether to scan for cross-platform arbitrage.
             limit_snapshots: Optional limit on the number of snapshots to replay.
             on_opportunity: Optional callback invoked when an opportunity is detected.
+            allow_unverified: If True, queries orderbook_snapshots directly instead of research_snapshots.
         """
         self.duckdb_path = Path(duckdb_path)
         self.speed = float(speed)
@@ -320,6 +322,7 @@ class ReplayEngine:
         self.include_cross = include_cross
         self.limit_snapshots = limit_snapshots
         self.on_opportunity = on_opportunity
+        self.allow_unverified = bool(allow_unverified)
 
         # Replay DataFeed (in-memory, network disabled)
         self.feed = DataFeed(
@@ -396,9 +399,20 @@ class ReplayEngine:
 
         conn = duckdb.connect(str(self.duckdb_path), read_only=True)
 
+        table_name = "orderbook_snapshots"
+        if not self.allow_unverified:
+            try:
+                view_check = conn.execute(
+                    "SELECT count(*) FROM information_schema.tables WHERE table_name = 'research_snapshots'"
+                ).fetchone()
+                if view_check and view_check[0] > 0:
+                    table_name = "research_snapshots"
+            except Exception:
+                pass
+
         query = [
-            "SELECT ts, platform, ticker, yes_bid, yes_ask, no_bid, no_ask, volume",
-            "FROM orderbook_snapshots",
+            "SELECT ts::VARCHAR, platform, ticker, yes_bid, yes_ask, no_bid, no_ask, volume",
+            f"FROM {table_name}",
             "WHERE 1=1",
         ]
         params: list[Any] = []
@@ -432,13 +446,21 @@ class ReplayEngine:
         curr_batch: list[tuple[Any, ...]] = []
 
         for row in rows:
-            ts = row[0]
-            if isinstance(ts, datetime) and ts.tzinfo is None:
+            raw_ts = row[0]
+            if isinstance(raw_ts, str):
+                ts = datetime.fromisoformat(raw_ts)
+            elif isinstance(raw_ts, datetime):
+                ts = raw_ts
+            else:
+                ts = datetime.now(timezone.utc)
+
+            if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
 
             if curr_ts is None or ts == curr_ts:
                 curr_ts = ts
                 curr_batch.append(row)
+
             else:
                 batches.append((curr_ts, curr_batch))
                 curr_ts = ts

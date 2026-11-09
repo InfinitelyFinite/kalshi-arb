@@ -1,10 +1,86 @@
-"""Domain models for prediction market trading and arbitrage detection."""
+"""Domain models for prediction market trading and arbitrage detection.
+
+Unit conventions (internal, enforced at the client boundary):
+- **Prices are in cents, 0 to 100** (``Decimal`` where exactness matters, e.g. DuckDB depth tables; legacy
+  integer fields such as ``yes_ask`` are rounded cents). Never dollars, never 0..1 fractions.
+- **Sizes are in contracts** (``Decimal``; Polymarket sizes can be fractional).
+- Source formats normalised at the boundary:
+  * Kalshi REST ``orderbook_fp``: ``yes_dollars``/``no_dollars`` = [["0.4500", "10.00"]] -> dollars -> *100 -> cents;
+    legacy ``orderbook``: [[45, 10]] already cents. Kalshi books are BIDS ONLY; asks are ``100 - opposite bid``.
+  * Kalshi WebSocket: ``*_dollars*`` fields are dollars, ``yes``/``no``/``price`` legacy fields are cents.
+  * Polymarket CLOB ``/book``: {"price": "0.485", "size": "30.5"} -> dollars -> cents (sub-cent ticks allowed).
+    Each outcome token has its OWN book (bids and asks); NO levels come from the NO token, not from the YES book.
+- Timestamps are UTC. ``observed_at`` = when this app received the data; ``exchange_updated_at`` = the platform's
+  own timestamp when supplied, otherwise ``None`` (never backfilled with ``observed_at``).
+"""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Optional
 from pydantic import BaseModel, ConfigDict, Field
+
+
+SCHEMA_VERSION = 2
+
+
+class MarketStatus(str, Enum):
+    """Normalised market status stored with every snapshot."""
+
+    OPEN = "open"
+    CLOSED = "closed"
+    SETTLED = "settled"
+    PAUSED = "paused"
+    UNKNOWN = "unknown"
+
+
+class DataSource(str, Enum):
+    """Provenance of a snapshot row. Only ``live_api`` rows feed research analysis."""
+
+    LIVE_API = "live_api"
+    REPLAY = "replay"
+    SYNTHETIC = "synthetic"
+    LEGACY_UNVERIFIED = "legacy_unverified"
+
+
+_KALSHI_STATUS_MAP = {
+    "open": MarketStatus.OPEN,
+    "active": MarketStatus.OPEN,
+    "closed": MarketStatus.CLOSED,
+    "determined": MarketStatus.SETTLED,
+    "finalized": MarketStatus.SETTLED,
+    "settled": MarketStatus.SETTLED,
+    "resolved": MarketStatus.SETTLED,
+    "inactive": MarketStatus.PAUSED,
+    "paused": MarketStatus.PAUSED,
+    "initialized": MarketStatus.PAUSED,
+}
+
+
+def normalize_market_status(
+    raw_status: Optional[str],
+    *,
+    accepting_orders: Optional[bool] = None,
+    archived: Optional[bool] = None,
+) -> MarketStatus:
+    """Map platform status strings (and Polymarket order-acceptance flags) to ``MarketStatus``.
+
+    Missing/unrecognised information yields ``UNKNOWN`` (which is never tradable), not ``OPEN``.
+    """
+    if archived:
+        return MarketStatus.CLOSED
+    if raw_status is None:
+        return MarketStatus.UNKNOWN
+    status = _KALSHI_STATUS_MAP.get(str(raw_status).strip().lower(), MarketStatus.UNKNOWN)
+    if status is MarketStatus.OPEN and accepting_orders is False:
+        return MarketStatus.PAUSED
+    return status
+
+
+def is_tradable(status: MarketStatus) -> bool:
+    """A market is tradable only when its normalised status is OPEN."""
+    return status is MarketStatus.OPEN
 
 
 class OpportunityLeg(BaseModel):

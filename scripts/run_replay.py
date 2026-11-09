@@ -105,6 +105,12 @@ def parse_args() -> argparse.Namespace:
         help="Restrict cross-platform matching strictly to config/market_overrides.yaml",
     )
     parser.add_argument(
+        "--allow-unverified",
+        action="store_true",
+        default=False,
+        help="Replay directly from raw orderbook_snapshots instead of research_snapshots view",
+    )
+    parser.add_argument(
         "--limit-snapshots",
         type=int,
         default=None,
@@ -148,6 +154,7 @@ async def main_async() -> int:
         include_intra=include_intra,
         include_cross=include_cross,
         limit_snapshots=args.limit_snapshots,
+        allow_unverified=args.allow_unverified,
     )
 
     summary: ReplaySummary = await engine.run()
