@@ -1,12 +1,12 @@
 # Empirical Market Study: Arbitrage Detection, Persistence, and Executability Analysis
 
-> **Generated:** 2026-11-09T16:54:06.686454+00:00 | **Dataset:** `research_snapshots`
+> **Generated:** 2026-11-09T18:29:47.199951+00:00 | **Dataset:** `research_snapshots`
 
 ## Executive Summary
 - **Study Duration:** 1.23 wall-clock hours across 20 verified pairs.
-- **Total Valid Pair-Hours:** 24.64 pair-hours.
-- **Usable Synchronized Market Data:** 99.9%.
-- **Overall Executable Opportunities / Hour:** 28695.122 opportunities / hour.
+- **Total Valid Pair-Hours:** 17.25 pair-hours.
+- **Usable Synchronized Market Data:** 69.7%.
+- **Overall Executable Opportunities / Hour:** 19395.122 opportunities / hour.
 
 ---
 
@@ -29,12 +29,6 @@ Frequency is computed strictly against **valid pair observation hours**, avoidin
 | `dem-nom-2028-rahm-emanuel` | 1.23h | 2064 | 1760 | 1760 | **1428.571** |
 | `dem-nom-2028-raphael-warnock` | 1.23h | 1995 | 1598 | 1598 | **1297.078** |
 | `dem-nom-2028-wes-moore` | 1.23h | 2024 | 1653 | 1653 | **1341.721** |
-| `rep-nom-2028-donald-trump-jr` | 1.23h | 2308 | 2043 | 2043 | **1658.279** |
-| `rep-nom-2028-jd-vance` | 1.23h | 2361 | 2010 | 2010 | **1631.494** |
-| `rep-nom-2028-marco-rubio` | 1.23h | 2159 | 1674 | 1674 | **1358.766** |
-| `rep-nom-2028-ron-desantis` | 1.23h | 2078 | 1674 | 1674 | **1358.766** |
-| `rep-nom-2028-ted-cruz` | 1.23h | 2349 | 2098 | 2098 | **1702.922** |
-| `rep-nom-2028-tucker-carlson` | 1.23h | 2275 | 1940 | 1940 | **1574.675** |
 
 ---
 
@@ -43,47 +37,47 @@ Stage-by-stage classification progression across the research period:
 
 | Funnel Stage | Count | Transition Conversion % |
 |:---|---:|---:|
-| 1 Total Pair Evaluations | 104,400 | — |
-| 2 Raw Pricing Opportunities | 42,378 | — |
-| 3 Fee Adjusted Opportunities | 35,295 | — |
-| 4 Executable Candidate Observations | 35,295 | — |
-| 5 Distinct Executable Episodes | 35,295 | — |
+| 1 Total Pair Evaluations | 73,080 | — |
+| 2 Raw Pricing Opportunities | 28,848 | — |
+| 3 Fee Adjusted Opportunities | 23,856 | — |
+| 4 Executable Candidate Observations | 23,856 | — |
+| 5 Distinct Executable Episodes | 23,856 | — |
 
 ### Primary Rejection & Drop-Off Reasons
 | Reject Reason Code | Filtered Count | Description / Mechanism |
 |:---|---:|:---|
-| `NO_RAW_EDGE` | 62,022 | Top-of-book or depth failure at this threshold |
-| `BELOW_MIN_EDGE_AFTER_COSTS` | 7,083 | Top-of-book or depth failure at this threshold |
+| `NO_RAW_EDGE` | 44,232 | Top-of-book or depth failure at this threshold |
+| `BELOW_MIN_EDGE_AFTER_COSTS` | 4,992 | Top-of-book or depth failure at this threshold |
 
 ---
 
 ## 3. Distribution of Net Edges (Q3)
-- **Sample Size:** 35295 executable candidate observations
-- **Mean Net Edge:** 15.22¢ | **Median:** 11.60¢ | **Std Dev:** 11.71¢
-- **Min Net Edge:** 2.10¢ | **Max Net Edge:** 68.20¢
+- **Sample Size:** 23856 executable candidate observations
+- **Mean Net Edge:** 15.37¢ | **Median:** 11.50¢ | **Std Dev:** 11.93¢
+- **Min Net Edge:** 2.10¢ | **Max Net Edge:** 60.90¢
 
 | Percentile | Net Edge (¢) |
 |:---|---:|
-| P25 | 6.10¢ |
-| P50 | 11.60¢ |
-| P75 | 21.50¢ |
-| P90 | 32.50¢ |
-| P95 | 39.70¢ |
+| P25 | 6.00¢ |
+| P50 | 11.50¢ |
+| P75 | 22.20¢ |
+| P90 | 33.30¢ |
+| P95 | 40.60¢ |
 
 ---
 
 ## 4. Opportunity Persistence & Duration (Q4)
-- **Distinct Episodes Tracked:** 35295
-- **Mean Persistence Duration:** 0.06s
+- **Distinct Episodes Tracked:** 23856
+- **Mean Persistence Duration:** 0.08s
 - **Median Duration:** 0.00s
 
 ### Survival Across Latency & Persistence Thresholds
 | Threshold | Surviving Episodes | Survival Rate % |
 |:---|---:|---:|
-| Persistence ≥ 0 seconds | 35295 | 100.0% |
-| Persistence ≥ 5 seconds | 4 | 0.0% |
-| Persistence ≥ 10 seconds | 4 | 0.0% |
-| Persistence ≥ 30 seconds | 3 | 0.0% |
+| Persistence ≥ 0 seconds | 23856 | 100.0% |
+| Persistence ≥ 5 seconds | 5 | 0.0% |
+| Persistence ≥ 10 seconds | 5 | 0.0% |
+| Persistence ≥ 30 seconds | 5 | 0.0% |
 
 ---
 
@@ -93,14 +87,14 @@ Stage-by-stage classification progression across the research period:
 
 | Order Size $q$ (Contracts) | Fillability Rate % | Successful Fill Count |
 |:---|---:|---:|
-| 1 contracts | 100.0% | 52,200 |
-| 10 contracts | 100.0% | 52,200 |
-| 50 contracts | 100.0% | 52,200 |
+| 1 contracts | 100.0% | 36,540 |
+| 10 contracts | 100.0% | 36,540 |
+| 50 contracts | 100.0% | 36,540 |
 
 ---
 
 ## 6. Data Synchronization & Quality (Q7)
-- **Usable Synchronized Pair Time:** **99.9%**
+- **Usable Synchronized Pair Time:** **69.7%**
 - **Median Quote Skew:** 0.0 ms (P95: 0.0 ms)
 - **Median Quote Age:** 0.0 s (P95: 0.0 s)
 - **Missing Exchange Timestamp %:** 0.0%

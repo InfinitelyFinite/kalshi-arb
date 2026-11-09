@@ -1,17 +1,17 @@
 Metric,Value
-SampleSize,35295
-MeanCents,15.22
-MedianCents,11.6
-StdDevCents,11.71
+SampleSize,23856
+MeanCents,15.37
+MedianCents,11.5
+StdDevCents,11.93
 MinCents,2.1
-MaxCents,68.2
-Percentile_P25,6.1
-Percentile_P50,11.6
-Percentile_P75,21.5
-Percentile_P90,32.5
-Percentile_P95,39.7
+MaxCents,60.9
+Percentile_P25,6.0
+Percentile_P50,11.5
+Percentile_P75,22.2
+Percentile_P90,33.3
+Percentile_P95,40.6
 Bucket_< 0.5¢,0
 Bucket_0.5¢ - 1.0¢,0
 Bucket_1.0¢ - 2.0¢,0
-Bucket_2.0¢ - 5.0¢,6686
-Bucket_> 5.0¢,28609
+Bucket_2.0¢ - 5.0¢,4582
+Bucket_> 5.0¢,19274

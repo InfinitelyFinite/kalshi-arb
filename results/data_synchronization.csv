@@ -1,7 +1,7 @@
 Metric,Value
-UsableSynchronizedPct,99.92
-TotalPairIntervals,52240
-SynchronizedIntervals,52200
+UsableSynchronizedPct,69.73
+TotalPairIntervals,52400
+SynchronizedIntervals,36540
 MedianQuoteSkewMs,0.0
 P95QuoteSkewMs,0.0
 MedianQuoteAgeSec,0.0

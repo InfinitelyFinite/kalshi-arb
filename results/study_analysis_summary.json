@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "generated_at_utc": "2026-11-09T16:54:06.686454+00:00",
+    "generated_at_utc": "2026-11-09T18:29:47.199951+00:00",
     "dataset": "research_snapshots",
-    "total_snapshots_loaded": 104440,
-    "synchronized_pair_observations": 52200,
+    "total_snapshots_loaded": 88940,
+    "synchronized_pair_observations": 36540,
     "distinct_pairs_count": 20,
     "time_window": {
       "start_utc": "2026-11-09T13:57:05.210245",
@@ -13,14 +13,14 @@
       "span_days": 0.05
     },
     "total_study_hours": 1.23,
-    "total_valid_pair_hours": 24.64
+    "total_valid_pair_hours": 17.248
   },
   "research_question_1_frequency": {
     "total_study_hours": 1.23,
-    "total_valid_pair_hours": 24.64,
-    "overall_raw_per_hour": 34453.659,
-    "overall_fee_adjusted_per_hour": 28695.122,
-    "overall_executable_per_hour": 28695.122,
+    "total_valid_pair_hours": 17.248,
+    "overall_raw_per_hour": 23453.659,
+    "overall_fee_adjusted_per_hour": 19395.122,
+    "overall_executable_per_hour": 19395.122,
     "rates_by_pair": [
       {
         "pair_id": "dem-nom-2028-alexandria-ocasio-cortez",
@@ -161,119 +161,59 @@
         "raw_per_pair_hour": 1642.857,
         "fee_adjusted_per_pair_hour": 1341.721,
         "executable_per_pair_hour": 1341.721
-      },
-      {
-        "pair_id": "rep-nom-2028-donald-trump-jr",
-        "valid_observation_hours": 1.232,
-        "raw_opportunities": 2308,
-        "fee_adjusted_opportunities": 2043,
-        "executable_opportunities": 2043,
-        "raw_per_pair_hour": 1873.377,
-        "fee_adjusted_per_pair_hour": 1658.279,
-        "executable_per_pair_hour": 1658.279
-      },
-      {
-        "pair_id": "rep-nom-2028-jd-vance",
-        "valid_observation_hours": 1.232,
-        "raw_opportunities": 2361,
-        "fee_adjusted_opportunities": 2010,
-        "executable_opportunities": 2010,
-        "raw_per_pair_hour": 1916.396,
-        "fee_adjusted_per_pair_hour": 1631.494,
-        "executable_per_pair_hour": 1631.494
-      },
-      {
-        "pair_id": "rep-nom-2028-marco-rubio",
-        "valid_observation_hours": 1.232,
-        "raw_opportunities": 2159,
-        "fee_adjusted_opportunities": 1674,
-        "executable_opportunities": 1674,
-        "raw_per_pair_hour": 1752.435,
-        "fee_adjusted_per_pair_hour": 1358.766,
-        "executable_per_pair_hour": 1358.766
-      },
-      {
-        "pair_id": "rep-nom-2028-ron-desantis",
-        "valid_observation_hours": 1.232,
-        "raw_opportunities": 2078,
-        "fee_adjusted_opportunities": 1674,
-        "executable_opportunities": 1674,
-        "raw_per_pair_hour": 1686.688,
-        "fee_adjusted_per_pair_hour": 1358.766,
-        "executable_per_pair_hour": 1358.766
-      },
-      {
-        "pair_id": "rep-nom-2028-ted-cruz",
-        "valid_observation_hours": 1.232,
-        "raw_opportunities": 2349,
-        "fee_adjusted_opportunities": 2098,
-        "executable_opportunities": 2098,
-        "raw_per_pair_hour": 1906.656,
-        "fee_adjusted_per_pair_hour": 1702.922,
-        "executable_per_pair_hour": 1702.922
-      },
-      {
-        "pair_id": "rep-nom-2028-tucker-carlson",
-        "valid_observation_hours": 1.232,
-        "raw_opportunities": 2275,
-        "fee_adjusted_opportunities": 1940,
-        "executable_opportunities": 1940,
-        "raw_per_pair_hour": 1846.591,
-        "fee_adjusted_per_pair_hour": 1574.675,
-        "executable_per_pair_hour": 1574.675
       }
     ]
   },
   "research_question_2_funnel": {
     "funnel_stages": {
-      "1_total_pair_evaluations": 104400,
-      "2_raw_pricing_opportunities": 42378,
-      "3_fee_adjusted_opportunities": 35295,
-      "4_executable_candidate_observations": 35295,
-      "5_distinct_executable_episodes": 35295
+      "1_total_pair_evaluations": 73080,
+      "2_raw_pricing_opportunities": 28848,
+      "3_fee_adjusted_opportunities": 23856,
+      "4_executable_candidate_observations": 23856,
+      "5_distinct_executable_episodes": 23856
     },
     "conversion_rates_pct": {
-      "raw_to_eval_pct": 40.592,
-      "fee_adj_to_raw_pct": 83.286,
+      "raw_to_eval_pct": 39.475,
+      "fee_adj_to_raw_pct": 82.696,
       "exec_to_fee_adj_pct": 100.0,
-      "overall_exec_rate_pct": 33.8075
+      "overall_exec_rate_pct": 32.6437
     },
     "primary_rejection_reasons": {
-      "NO_RAW_EDGE": 62022,
-      "BELOW_MIN_EDGE_AFTER_COSTS": 7083
+      "NO_RAW_EDGE": 44232,
+      "BELOW_MIN_EDGE_AFTER_COSTS": 4992
     },
     "latency_survival_counts": {
-      "survived_2s": 4,
-      "survived_5s": 4,
-      "survived_10s": 4
+      "survived_2s": 5,
+      "survived_5s": 5,
+      "survived_10s": 5
     }
   },
   "research_question_3_edge_distribution": {
-    "sample_size": 35295,
-    "mean_cents": 15.22,
-    "median_cents": 11.6,
-    "std_dev_cents": 11.71,
+    "sample_size": 23856,
+    "mean_cents": 15.37,
+    "median_cents": 11.5,
+    "std_dev_cents": 11.93,
     "min_cents": 2.1,
-    "max_cents": 68.2,
+    "max_cents": 60.9,
     "percentiles": {
-      "p25": 6.1,
-      "p50": 11.6,
-      "p75": 21.5,
-      "p90": 32.5,
-      "p95": 39.7
+      "p25": 6.0,
+      "p50": 11.5,
+      "p75": 22.2,
+      "p90": 33.3,
+      "p95": 40.6
     },
     "edge_buckets": {
       "< 0.5\u00a2": 0,
       "0.5\u00a2 - 1.0\u00a2": 0,
       "1.0\u00a2 - 2.0\u00a2": 0,
-      "2.0\u00a2 - 5.0\u00a2": 6686,
-      "> 5.0\u00a2": 28609
+      "2.0\u00a2 - 5.0\u00a2": 4582,
+      "> 5.0\u00a2": 19274
     },
-    "raw_edges_mean_cents": 14.16
+    "raw_edges_mean_cents": 14.18
   },
   "research_question_4_persistence": {
-    "total_distinct_episodes": 35295,
-    "mean_duration_seconds": 0.06,
+    "total_distinct_episodes": 23856,
+    "mean_duration_seconds": 0.08,
     "median_duration_seconds": 0.0,
     "min_duration_seconds": 0.0,
     "max_duration_seconds": 60.0,
@@ -284,20 +224,20 @@
       "p90": 0.0
     },
     "persistence_survival_counts": {
-      "persisted_gte_0s": 35295,
-      "persisted_gte_5s": 4,
-      "persisted_gte_10s": 4,
-      "persisted_gte_30s": 3
+      "persisted_gte_0s": 23856,
+      "persisted_gte_5s": 5,
+      "persisted_gte_10s": 5,
+      "persisted_gte_30s": 5
     },
     "persistence_survival_percentages": {
       "survival_gte_0s_pct": 100.0,
-      "survival_gte_5s_pct": 0.01,
-      "survival_gte_10s_pct": 0.01,
-      "survival_gte_30s_pct": 0.01
+      "survival_gte_5s_pct": 0.02,
+      "survival_gte_10s_pct": 0.02,
+      "survival_gte_30s_pct": 0.02
     }
   },
   "research_question_5_depth_and_volume": {
-    "total_quotes_evaluated": 52200,
+    "total_quotes_evaluated": 36540,
     "average_available_yes_size": 50.0,
     "median_available_yes_size": 50.0,
     "average_available_no_size": 50.0,
@@ -308,9 +248,9 @@
       "size_50_fill_pct": 100.0
     },
     "fill_counts": {
-      "1": 52200,
-      "10": 52200,
-      "50": 52200
+      "1": 36540,
+      "10": 36540,
+      "50": 36540
     }
   },
   "research_question_6_sensitivity": [
@@ -319,1188 +259,1188 @@
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38013,
-      "executable_candidates_count": 38013,
-      "mean_net_edge_cents": 13.87,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1553,
+      "executable_candidates_count": 1553,
+      "mean_net_edge_cents": 5.5,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38013,
-      "executable_candidates_count": 38013,
-      "mean_net_edge_cents": 13.87,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1553,
+      "executable_candidates_count": 1553,
+      "mean_net_edge_cents": 5.5,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38013,
-      "executable_candidates_count": 38013,
-      "mean_net_edge_cents": 13.87,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1553,
+      "executable_candidates_count": 1553,
+      "mean_net_edge_cents": 5.5,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38013,
-      "executable_candidates_count": 38013,
-      "mean_net_edge_cents": 13.87,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1553,
+      "executable_candidates_count": 1553,
+      "mean_net_edge_cents": 5.5,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38013,
-      "executable_candidates_count": 38013,
-      "mean_net_edge_cents": 13.87,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1553,
+      "executable_candidates_count": 1553,
+      "mean_net_edge_cents": 5.5,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38013,
-      "executable_candidates_count": 38013,
-      "mean_net_edge_cents": 13.87,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1553,
+      "executable_candidates_count": 1553,
+      "mean_net_edge_cents": 5.5,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35474,
-      "executable_candidates_count": 35474,
-      "mean_net_edge_cents": 14.79,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1290,
+      "executable_candidates_count": 1290,
+      "mean_net_edge_cents": 6.42,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35474,
-      "executable_candidates_count": 35474,
-      "mean_net_edge_cents": 14.79,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1290,
+      "executable_candidates_count": 1290,
+      "mean_net_edge_cents": 6.42,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35474,
-      "executable_candidates_count": 35474,
-      "mean_net_edge_cents": 14.79,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1290,
+      "executable_candidates_count": 1290,
+      "mean_net_edge_cents": 6.42,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 33010,
-      "executable_candidates_count": 33010,
-      "mean_net_edge_cents": 15.74,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1030,
+      "executable_candidates_count": 1030,
+      "mean_net_edge_cents": 7.54,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 33010,
-      "executable_candidates_count": 33010,
-      "mean_net_edge_cents": 15.74,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1030,
+      "executable_candidates_count": 1030,
+      "mean_net_edge_cents": 7.54,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 33010,
-      "executable_candidates_count": 33010,
-      "mean_net_edge_cents": 15.74,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1030,
+      "executable_candidates_count": 1030,
+      "mean_net_edge_cents": 7.54,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40748,
-      "executable_candidates_count": 40748,
-      "mean_net_edge_cents": 13.31,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1884,
+      "executable_candidates_count": 1884,
+      "mean_net_edge_cents": 4.92,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40748,
-      "executable_candidates_count": 40748,
-      "mean_net_edge_cents": 13.31,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1884,
+      "executable_candidates_count": 1884,
+      "mean_net_edge_cents": 4.92,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40748,
-      "executable_candidates_count": 40748,
-      "mean_net_edge_cents": 13.31,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1884,
+      "executable_candidates_count": 1884,
+      "mean_net_edge_cents": 4.92,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38700,
-      "executable_candidates_count": 38700,
-      "mean_net_edge_cents": 14.0,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1639,
+      "executable_candidates_count": 1639,
+      "mean_net_edge_cents": 5.62,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38700,
-      "executable_candidates_count": 38700,
-      "mean_net_edge_cents": 14.0,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1639,
+      "executable_candidates_count": 1639,
+      "mean_net_edge_cents": 5.62,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38700,
-      "executable_candidates_count": 38700,
-      "mean_net_edge_cents": 14.0,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1639,
+      "executable_candidates_count": 1639,
+      "mean_net_edge_cents": 5.62,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37829,
-      "executable_candidates_count": 37829,
-      "mean_net_edge_cents": 14.3,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1523,
+      "executable_candidates_count": 1523,
+      "mean_net_edge_cents": 5.98,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37829,
-      "executable_candidates_count": 37829,
-      "mean_net_edge_cents": 14.3,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1523,
+      "executable_candidates_count": 1523,
+      "mean_net_edge_cents": 5.98,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37829,
-      "executable_candidates_count": 37829,
-      "mean_net_edge_cents": 14.3,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1523,
+      "executable_candidates_count": 1523,
+      "mean_net_edge_cents": 5.98,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35295,
-      "executable_candidates_count": 35295,
-      "mean_net_edge_cents": 15.22,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1267,
+      "executable_candidates_count": 1267,
+      "mean_net_edge_cents": 6.9,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35295,
-      "executable_candidates_count": 35295,
-      "mean_net_edge_cents": 15.22,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1267,
+      "executable_candidates_count": 1267,
+      "mean_net_edge_cents": 6.9,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35295,
-      "executable_candidates_count": 35295,
-      "mean_net_edge_cents": 15.22,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1267,
+      "executable_candidates_count": 1267,
+      "mean_net_edge_cents": 6.9,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40843,
-      "executable_candidates_count": 40843,
-      "mean_net_edge_cents": 13.32,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1902,
+      "executable_candidates_count": 1902,
+      "mean_net_edge_cents": 4.91,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40843,
-      "executable_candidates_count": 40843,
-      "mean_net_edge_cents": 13.32,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1902,
+      "executable_candidates_count": 1902,
+      "mean_net_edge_cents": 4.91,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40843,
-      "executable_candidates_count": 40843,
-      "mean_net_edge_cents": 13.32,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1902,
+      "executable_candidates_count": 1902,
+      "mean_net_edge_cents": 4.91,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38982,
-      "executable_candidates_count": 38982,
-      "mean_net_edge_cents": 13.94,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1675,
+      "executable_candidates_count": 1675,
+      "mean_net_edge_cents": 5.54,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38982,
-      "executable_candidates_count": 38982,
-      "mean_net_edge_cents": 13.94,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1675,
+      "executable_candidates_count": 1675,
+      "mean_net_edge_cents": 5.54,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38982,
-      "executable_candidates_count": 38982,
-      "mean_net_edge_cents": 13.94,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1675,
+      "executable_candidates_count": 1675,
+      "mean_net_edge_cents": 5.54,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37928,
-      "executable_candidates_count": 37928,
-      "mean_net_edge_cents": 14.31,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1538,
+      "executable_candidates_count": 1538,
+      "mean_net_edge_cents": 5.97,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37928,
-      "executable_candidates_count": 37928,
-      "mean_net_edge_cents": 14.31,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1538,
+      "executable_candidates_count": 1538,
+      "mean_net_edge_cents": 5.97,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37928,
-      "executable_candidates_count": 37928,
-      "mean_net_edge_cents": 14.31,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1538,
+      "executable_candidates_count": 1538,
+      "mean_net_edge_cents": 5.97,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35402,
-      "executable_candidates_count": 35402,
-      "mean_net_edge_cents": 15.23,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1279,
+      "executable_candidates_count": 1279,
+      "mean_net_edge_cents": 6.89,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35402,
-      "executable_candidates_count": 35402,
-      "mean_net_edge_cents": 15.23,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1279,
+      "executable_candidates_count": 1279,
+      "mean_net_edge_cents": 6.89,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "baseline",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35402,
-      "executable_candidates_count": 35402,
-      "mean_net_edge_cents": 15.23,
-      "max_net_edge_cents": 68.2
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1279,
+      "executable_candidates_count": 1279,
+      "mean_net_edge_cents": 6.89,
+      "max_net_edge_cents": 47.6
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.1,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 5.66,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.1,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 5.66,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.1,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 5.66,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.1,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 5.66,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.1,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 5.66,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.1,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 5.66,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.02,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 6.65,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.02,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 6.65,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.02,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 6.65,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 34537,
-      "executable_candidates_count": 34537,
-      "mean_net_edge_cents": 15.93,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1122,
+      "executable_candidates_count": 1122,
+      "mean_net_edge_cents": 7.65,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 34537,
-      "executable_candidates_count": 34537,
-      "mean_net_edge_cents": 15.93,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1122,
+      "executable_candidates_count": 1122,
+      "mean_net_edge_cents": 7.65,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 34537,
-      "executable_candidates_count": 34537,
-      "mean_net_edge_cents": 15.93,
-      "max_net_edge_cents": 68.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1122,
+      "executable_candidates_count": 1122,
+      "mean_net_edge_cents": 7.65,
+      "max_net_edge_cents": 47.0
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 42378,
-      "executable_candidates_count": 42378,
-      "mean_net_edge_cents": 13.45,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 2001,
+      "executable_candidates_count": 2001,
+      "mean_net_edge_cents": 5.12,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 42378,
-      "executable_candidates_count": 42378,
-      "mean_net_edge_cents": 13.45,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 2001,
+      "executable_candidates_count": 2001,
+      "mean_net_edge_cents": 5.12,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 42378,
-      "executable_candidates_count": 42378,
-      "mean_net_edge_cents": 13.45,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 2001,
+      "executable_candidates_count": 2001,
+      "mean_net_edge_cents": 5.12,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40528,
-      "executable_candidates_count": 40528,
-      "mean_net_edge_cents": 14.05,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1837,
+      "executable_candidates_count": 1837,
+      "mean_net_edge_cents": 5.55,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40528,
-      "executable_candidates_count": 40528,
-      "mean_net_edge_cents": 14.05,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1837,
+      "executable_candidates_count": 1837,
+      "mean_net_edge_cents": 5.55,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40528,
-      "executable_candidates_count": 40528,
-      "mean_net_edge_cents": 14.05,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1837,
+      "executable_candidates_count": 1837,
+      "mean_net_edge_cents": 5.55,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.38,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 6.1,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.38,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 6.1,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.38,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 6.1,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.3,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 7.07,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.3,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 7.07,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.3,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 7.07,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 42378,
-      "executable_candidates_count": 42378,
-      "mean_net_edge_cents": 13.48,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 2001,
+      "executable_candidates_count": 2001,
+      "mean_net_edge_cents": 5.16,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 42378,
-      "executable_candidates_count": 42378,
-      "mean_net_edge_cents": 13.48,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 2001,
+      "executable_candidates_count": 2001,
+      "mean_net_edge_cents": 5.16,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 42378,
-      "executable_candidates_count": 42378,
-      "mean_net_edge_cents": 13.48,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 2001,
+      "executable_candidates_count": 2001,
+      "mean_net_edge_cents": 5.16,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40843,
-      "executable_candidates_count": 40843,
-      "mean_net_edge_cents": 13.98,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1902,
+      "executable_candidates_count": 1902,
+      "mean_net_edge_cents": 5.41,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40843,
-      "executable_candidates_count": 40843,
-      "mean_net_edge_cents": 13.98,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1902,
+      "executable_candidates_count": 1902,
+      "mean_net_edge_cents": 5.41,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 40843,
-      "executable_candidates_count": 40843,
-      "mean_net_edge_cents": 13.98,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1902,
+      "executable_candidates_count": 1902,
+      "mean_net_edge_cents": 5.41,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.42,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 6.13,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.42,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 6.13,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 39545,
-      "executable_candidates_count": 39545,
-      "mean_net_edge_cents": 14.42,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1651,
+      "executable_candidates_count": 1651,
+      "mean_net_edge_cents": 6.13,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.34,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 7.1,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.34,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 7.1,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "lower_cost",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36940,
-      "executable_candidates_count": 36940,
-      "mean_net_edge_cents": 15.34,
-      "max_net_edge_cents": 68.6
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1363,
+      "executable_candidates_count": 1363,
+      "mean_net_edge_cents": 7.1,
+      "max_net_edge_cents": 47.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 31687,
-      "executable_candidates_count": 31687,
-      "mean_net_edge_cents": 13.58,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 936,
+      "executable_candidates_count": 936,
+      "mean_net_edge_cents": 5.53,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 31687,
-      "executable_candidates_count": 31687,
-      "mean_net_edge_cents": 13.58,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 936,
+      "executable_candidates_count": 936,
+      "mean_net_edge_cents": 5.53,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 31687,
-      "executable_candidates_count": 31687,
-      "mean_net_edge_cents": 13.58,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 936,
+      "executable_candidates_count": 936,
+      "mean_net_edge_cents": 5.53,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 31687,
-      "executable_candidates_count": 31687,
-      "mean_net_edge_cents": 13.58,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 936,
+      "executable_candidates_count": 936,
+      "mean_net_edge_cents": 5.53,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 31687,
-      "executable_candidates_count": 31687,
-      "mean_net_edge_cents": 13.58,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 936,
+      "executable_candidates_count": 936,
+      "mean_net_edge_cents": 5.53,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 31687,
-      "executable_candidates_count": 31687,
-      "mean_net_edge_cents": 13.58,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 936,
+      "executable_candidates_count": 936,
+      "mean_net_edge_cents": 5.53,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 29372,
-      "executable_candidates_count": 29372,
-      "mean_net_edge_cents": 14.57,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 747,
+      "executable_candidates_count": 747,
+      "mean_net_edge_cents": 6.68,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 29372,
-      "executable_candidates_count": 29372,
-      "mean_net_edge_cents": 14.57,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 747,
+      "executable_candidates_count": 747,
+      "mean_net_edge_cents": 6.68,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 29372,
-      "executable_candidates_count": 29372,
-      "mean_net_edge_cents": 14.57,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 747,
+      "executable_candidates_count": 747,
+      "mean_net_edge_cents": 6.68,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 27321,
-      "executable_candidates_count": 27321,
-      "mean_net_edge_cents": 15.52,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 583,
+      "executable_candidates_count": 583,
+      "mean_net_edge_cents": 7.99,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 27321,
-      "executable_candidates_count": 27321,
-      "mean_net_edge_cents": 15.52,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 583,
+      "executable_candidates_count": 583,
+      "mean_net_edge_cents": 7.99,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 1,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 27321,
-      "executable_candidates_count": 27321,
-      "mean_net_edge_cents": 15.52,
-      "max_net_edge_cents": 65.0
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 583,
+      "executable_candidates_count": 583,
+      "mean_net_edge_cents": 7.99,
+      "max_net_edge_cents": 45.0
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37519,
-      "executable_candidates_count": 37519,
-      "mean_net_edge_cents": 13.32,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1556,
+      "executable_candidates_count": 1556,
+      "mean_net_edge_cents": 4.97,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37519,
-      "executable_candidates_count": 37519,
-      "mean_net_edge_cents": 13.32,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1556,
+      "executable_candidates_count": 1556,
+      "mean_net_edge_cents": 4.97,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 37519,
-      "executable_candidates_count": 37519,
-      "mean_net_edge_cents": 13.32,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1556,
+      "executable_candidates_count": 1556,
+      "mean_net_edge_cents": 4.97,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36459,
-      "executable_candidates_count": 36459,
-      "mean_net_edge_cents": 13.7,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1434,
+      "executable_candidates_count": 1434,
+      "mean_net_edge_cents": 5.37,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36459,
-      "executable_candidates_count": 36459,
-      "mean_net_edge_cents": 13.7,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1434,
+      "executable_candidates_count": 1434,
+      "mean_net_edge_cents": 5.37,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36459,
-      "executable_candidates_count": 36459,
-      "mean_net_edge_cents": 13.7,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1434,
+      "executable_candidates_count": 1434,
+      "mean_net_edge_cents": 5.37,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 34913,
-      "executable_candidates_count": 34913,
-      "mean_net_edge_cents": 14.27,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1273,
+      "executable_candidates_count": 1273,
+      "mean_net_edge_cents": 5.94,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 34913,
-      "executable_candidates_count": 34913,
-      "mean_net_edge_cents": 14.27,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1273,
+      "executable_candidates_count": 1273,
+      "mean_net_edge_cents": 5.94,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 34913,
-      "executable_candidates_count": 34913,
-      "mean_net_edge_cents": 14.27,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1273,
+      "executable_candidates_count": 1273,
+      "mean_net_edge_cents": 5.94,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 32454,
-      "executable_candidates_count": 32454,
-      "mean_net_edge_cents": 15.23,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1020,
+      "executable_candidates_count": 1020,
+      "mean_net_edge_cents": 7.02,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 32454,
-      "executable_candidates_count": 32454,
-      "mean_net_edge_cents": 15.23,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1020,
+      "executable_candidates_count": 1020,
+      "mean_net_edge_cents": 7.02,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 10,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 32454,
-      "executable_candidates_count": 32454,
-      "mean_net_edge_cents": 15.23,
-      "max_net_edge_cents": 67.4
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1020,
+      "executable_candidates_count": 1020,
+      "mean_net_edge_cents": 7.02,
+      "max_net_edge_cents": 46.8
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38340,
-      "executable_candidates_count": 38340,
-      "mean_net_edge_cents": 13.19,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1647,
+      "executable_candidates_count": 1647,
+      "mean_net_edge_cents": 4.85,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38340,
-      "executable_candidates_count": 38340,
-      "mean_net_edge_cents": 13.19,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1647,
+      "executable_candidates_count": 1647,
+      "mean_net_edge_cents": 4.85,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 38340,
-      "executable_candidates_count": 38340,
-      "mean_net_edge_cents": 13.19,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1647,
+      "executable_candidates_count": 1647,
+      "mean_net_edge_cents": 4.85,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36842,
-      "executable_candidates_count": 36842,
-      "mean_net_edge_cents": 13.71,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1473,
+      "executable_candidates_count": 1473,
+      "mean_net_edge_cents": 5.39,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36842,
-      "executable_candidates_count": 36842,
-      "mean_net_edge_cents": 13.71,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1473,
+      "executable_candidates_count": 1473,
+      "mean_net_edge_cents": 5.39,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 0.5,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 36842,
-      "executable_candidates_count": 36842,
-      "mean_net_edge_cents": 13.71,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1473,
+      "executable_candidates_count": 1473,
+      "mean_net_edge_cents": 5.39,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35706,
-      "executable_candidates_count": 35706,
-      "mean_net_edge_cents": 14.12,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1350,
+      "executable_candidates_count": 1350,
+      "mean_net_edge_cents": 5.81,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35706,
-      "executable_candidates_count": 35706,
-      "mean_net_edge_cents": 14.12,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1350,
+      "executable_candidates_count": 1350,
+      "mean_net_edge_cents": 5.81,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 1.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 35706,
-      "executable_candidates_count": 35706,
-      "mean_net_edge_cents": 14.12,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1350,
+      "executable_candidates_count": 1350,
+      "mean_net_edge_cents": 5.81,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 5.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 33143,
-      "executable_candidates_count": 33143,
-      "mean_net_edge_cents": 15.1,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1076,
+      "executable_candidates_count": 1076,
+      "mean_net_edge_cents": 6.91,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 10.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 33143,
-      "executable_candidates_count": 33143,
-      "mean_net_edge_cents": 15.1,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1076,
+      "executable_candidates_count": 1076,
+      "mean_net_edge_cents": 6.91,
+      "max_net_edge_cents": 46.9
     },
     {
       "fee_scenario": "higher_cost",
       "trade_size_q": 50,
       "min_edge_cents": 2.0,
       "quote_freshness_sec": 30.0,
-      "raw_positive_count": 42378,
-      "fee_adjusted_count": 33143,
-      "executable_candidates_count": 33143,
-      "mean_net_edge_cents": 15.1,
-      "max_net_edge_cents": 67.54
+      "raw_positive_count": 2001,
+      "fee_adjusted_count": 1076,
+      "executable_candidates_count": 1076,
+      "mean_net_edge_cents": 6.91,
+      "max_net_edge_cents": 46.9
     }
   ],
   "research_question_7_synchronization": {
@@ -1527,9 +1467,9 @@
       "rep-nom-2028-ted-cruz",
       "rep-nom-2028-tucker-carlson"
     ],
-    "total_pair_intervals": 52240,
-    "synchronized_intervals": 52200,
-    "usable_synchronized_pct": 99.92,
+    "total_pair_intervals": 52400,
+    "synchronized_intervals": 36540,
+    "usable_synchronized_pct": 69.73,
     "time_window": {
       "start_utc": "2026-11-09T13:57:05.210245",
       "end_utc": "2026-11-09T15:10:59.257021",
