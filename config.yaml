@@ -48,3 +48,20 @@ data_quality:
   snapshot_interval_seconds: 60
   gap_threshold_seconds: 300
   stale_quote_seconds: 60
+
+# Step 12: Executability and liquidity analysis parameters
+executability:
+  sizes: [1, 10, 50]
+  min_edge_cents: 2.0
+  tau_fresh: 10.0
+  tau_fresh_sweep: [5.0, 10.0, 30.0]
+  tau_skew: 5.0
+  tau_skew_sweep: [1.0, 5.0, 10.0]
+  clock_tolerance_s: 2.0
+  kalshi_taker_rate: 0.07
+  kalshi_multiplier: 1.0
+  polymarket_taker_rate: 0.0
+  polygon_gas_cents: 0.0
+  slippage_cents: 0.0
+  latency_sweep_s: [1.0, 2.0, 5.0, 10.0, 30.0]
+  episode_gap_tolerance: 1.5

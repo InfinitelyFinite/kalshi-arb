@@ -459,3 +459,224 @@ def find_cross_platform_opportunities(
                 )
 
     return opportunities
+
+
+def _extract_leg_data(book: Any, platform: str, ticker: str) -> tuple[
+    Optional[int],  # snapshot_id
+    list[tuple[Any, Any]],  # yes_ask_ladder
+    list[tuple[Any, Any]],  # no_ask_ladder
+    datetime,  # observed_at_utc
+    Optional[datetime],  # exchange_updated_at_utc
+    bool,  # tradable
+    str,  # data_source
+    bool,  # depth_truncated
+    bool,  # no_side_derived
+]:
+    """Helper to extract ladders and snapshot metadata from any market/orderbook representation."""
+    from decimal import Decimal
+    from core.depth import clean_levels, kalshi_ladders, polymarket_ladders
+
+    sid = getattr(book, "snapshot_id", None) or (book.get("snapshot_id") if isinstance(book, dict) else None)
+    ts = getattr(book, "ts", None) or (book.get("ts") if isinstance(book, dict) else None)
+    if not isinstance(ts, datetime):
+        ts = datetime.now(timezone.utc)
+    elif ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+
+    obs_at = getattr(book, "observed_at_utc", None) or (
+        book.get("observed_at_utc") if isinstance(book, dict) else None
+    ) or ts
+    exch_at = getattr(book, "exchange_updated_at_utc", None) or (
+        book.get("exchange_updated_at_utc") if isinstance(book, dict) else None
+    )
+
+    status = getattr(book, "market_status", None) or getattr(book, "status", None) or (
+        book.get("market_status") if isinstance(book, dict) else (book.get("status") if isinstance(book, dict) else None)
+    )
+    tradable = getattr(book, "tradable", None)
+    if tradable is None and isinstance(book, dict):
+        tradable = book.get("tradable")
+    if tradable is None:
+        tradable = (str(status).strip().lower() in ("open", "active")) if status else False
+
+    data_source = getattr(book, "data_source", None) or (
+        book.get("data_source") if isinstance(book, dict) else "live_api"
+    )
+    depth_truncated = bool(
+        getattr(book, "depth_truncated", False)
+        or (book.get("depth_truncated", False) if isinstance(book, dict) else False)
+    )
+
+    levels = getattr(book, "levels", None) or (book.get("levels") if isinstance(book, dict) else None)
+    raw_ob = getattr(book, "raw_orderbook", None) or getattr(book, "orderbook", None) or (
+        book.get("raw_orderbook") if isinstance(book, dict) else (book.get("orderbook") if isinstance(book, dict) else None)
+    )
+
+    yes_ask_ladder = []
+    no_ask_ladder = []
+    no_derived = False
+
+    if levels and isinstance(levels, dict):
+        yes_ask_ladder = clean_levels(levels.get("yes_ask", []), ascending=True)
+        no_ask_ladder = clean_levels(levels.get("no_ask", []), ascending=True)
+    elif raw_ob is not None:
+        if platform == "kalshi" and (hasattr(raw_ob, "yes_bid_levels") or hasattr(raw_ob, "no_bid_levels")):
+            ladders = kalshi_ladders(raw_ob)
+            yes_ask_ladder = ladders.yes_ask
+            no_ask_ladder = ladders.no_ask
+            if exch_at is None:
+                exch_at = ladders.exchange_updated_at
+        elif platform == "polymarket" and hasattr(raw_ob, "ask_levels"):
+            ladders = polymarket_ladders(raw_ob)
+            yes_ask_ladder = ladders.yes_ask
+            no_ask_ladder = ladders.no_ask
+            no_derived = ladders.no_side_derived
+            if exch_at is None:
+                exch_at = ladders.exchange_updated_at
+
+    # Top-of-book fallback
+    yes_ask, no_ask, _, _, _ = _extract_book_prices(book)
+    if not yes_ask_ladder and yes_ask is not None:
+        size = getattr(book, "ask_yes_size", None) or (book.get("ask_yes_size") if isinstance(book, dict) else None) or Decimal("100")
+        yes_ask_ladder = [(Decimal(str(yes_ask)), Decimal(str(size)))]
+    if not no_ask_ladder and no_ask is not None:
+        size = getattr(book, "ask_no_size", None) or (book.get("ask_no_size") if isinstance(book, dict) else None) or Decimal("100")
+        no_ask_ladder = [(Decimal(str(no_ask)), Decimal(str(size)))]
+
+    return sid, yes_ask_ladder, no_ask_ladder, obs_at, exch_at, bool(tradable), str(data_source), depth_truncated, no_derived
+
+
+def build_cross_platform_executability_inputs(
+    pair: Any,
+    k_book: Any,
+    p_book: Any,
+    pair_verified: bool = True,
+) -> list["OpportunityInput"]:
+    """Build OpportunityInput records for both cross-platform arbitrage directions:
+
+    Direction A: Kalshi YES + Polymarket NO
+    Direction B: Polymarket YES + Kalshi NO
+    """
+    from decimal import Decimal
+    from core.executability import LegInput, OpportunityInput
+
+    k_id, p_id, _, _ = _extract_pair_info(pair)
+    pair_id = getattr(pair, "pair_id", None) or (pair.get("pair_id") if isinstance(pair, dict) else None) or f"{k_id}_{p_id}"
+
+    k_sid, k_ya, k_na, k_obs, k_exch, k_tradable, k_ds, k_trunc, _ = _extract_leg_data(k_book, "kalshi", k_id)
+    p_sid, p_ya, p_na, p_obs, p_exch, p_tradable, p_ds, p_trunc, p_derived = _extract_leg_data(p_book, "polymarket", p_id)
+
+    k_best_ya = k_ya[0][0] if k_ya else None
+    k_best_na = k_na[0][0] if k_na else None
+    p_best_ya = p_ya[0][0] if p_ya else None
+    p_best_na = p_na[0][0] if p_na else None
+
+    # Direction A: Kalshi YES + Polymarket NO
+    leg_k_yes = LegInput(
+        snapshot_id=k_sid,
+        platform="kalshi",
+        ticker=k_id,
+        best_ask=k_best_ya,
+        ask_ladder=k_ya,
+        depth_truncated=k_trunc,
+        observed_at_utc=k_obs,
+        exchange_updated_at_utc=k_exch,
+        tradable=k_tradable,
+        data_source=k_ds,
+        is_inferred=False,
+    )
+    leg_p_no = LegInput(
+        snapshot_id=p_sid,
+        platform="polymarket",
+        ticker=p_id,
+        best_ask=p_best_na,
+        ask_ladder=p_na,
+        depth_truncated=p_trunc,
+        observed_at_utc=p_obs,
+        exchange_updated_at_utc=p_exch,
+        tradable=p_tradable,
+        data_source=p_ds,
+        is_inferred=p_derived,
+    )
+    input_a = OpportunityInput(
+        kind="cross",
+        pair_id=pair_id,
+        ticker=pair_id,
+        direction="kalshi_yes_polymarket_no",
+        leg1=leg_k_yes,
+        leg2=leg_p_no,
+        pair_verified=pair_verified,
+    )
+
+    # Direction B: Polymarket YES + Kalshi NO
+    leg_p_yes = LegInput(
+        snapshot_id=p_sid,
+        platform="polymarket",
+        ticker=p_id,
+        best_ask=p_best_ya,
+        ask_ladder=p_ya,
+        depth_truncated=p_trunc,
+        observed_at_utc=p_obs,
+        exchange_updated_at_utc=p_exch,
+        tradable=p_tradable,
+        data_source=p_ds,
+        is_inferred=False,
+    )
+    leg_k_no = LegInput(
+        snapshot_id=k_sid,
+        platform="kalshi",
+        ticker=k_id,
+        best_ask=k_best_na,
+        ask_ladder=k_na,
+        depth_truncated=k_trunc,
+        observed_at_utc=k_obs,
+        exchange_updated_at_utc=k_exch,
+        tradable=k_tradable,
+        data_source=k_ds,
+        is_inferred=False,
+    )
+    input_b = OpportunityInput(
+        kind="cross",
+        pair_id=pair_id,
+        ticker=pair_id,
+        direction="polymarket_yes_kalshi_no",
+        leg1=leg_p_yes,
+        leg2=leg_k_no,
+        pair_verified=pair_verified,
+    )
+
+    return [input_a, input_b]
+
+
+def evaluate_cross_platform_opportunities(
+    matched_pairs: Sequence[Any],
+    kalshi_orderbooks: Union[dict[str, Any], Sequence[Any]],
+    polymarket_orderbooks: Union[dict[str, Any], Sequence[Any]],
+    params: "ExecutabilityParams",
+    t_eval: datetime,
+    pair_verified: bool = True,
+) -> list["OpportunityEvaluation"]:
+    """Evaluate executability for all matched pairs and directions across all configured sizes."""
+    from core.executability import evaluate_opportunity
+
+    k_map = _build_orderbook_map(kalshi_orderbooks)
+    p_map = _build_orderbook_map(polymarket_orderbooks)
+
+    evaluations: list["OpportunityEvaluation"] = []
+
+    for pair in matched_pairs:
+        kalshi_id, poly_id, k_fallback, p_fallback = _extract_pair_info(pair)
+        k_book = _resolve_book(k_map, kalshi_id, k_fallback)
+        p_book = _resolve_book(p_map, poly_id, p_fallback)
+
+        if k_book is None or p_book is None:
+            continue
+
+        inputs = build_cross_platform_executability_inputs(pair, k_book, p_book, pair_verified=pair_verified)
+        for inp in inputs:
+            for q in params.sizes:
+                ev = evaluate_opportunity(inp, params, t_eval, size_q=q)
+                evaluations.append(ev)
+
+    return evaluations
+

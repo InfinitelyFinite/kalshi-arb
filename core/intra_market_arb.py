@@ -229,3 +229,158 @@ def find_intra_market_opportunities(
             )
 
     return opportunities
+
+
+def build_intra_market_executability_input(
+    market: Any,
+    pair_verified: bool = True,
+) -> Optional["OpportunityInput"]:
+    """Build an OpportunityInput for a Kalshi market to evaluate executability across sizes."""
+    from decimal import Decimal
+    from core.depth import clean_levels, kalshi_ladders
+    from core.executability import LegInput, OpportunityInput
+
+    ticker = (
+        getattr(market, "ticker", None)
+        or (market.get("ticker") if isinstance(market, dict) else None)
+        or ""
+    )
+    platform = (
+        getattr(market, "platform", None)
+        or (market.get("platform") if isinstance(market, dict) else None)
+        or "kalshi"
+    )
+    if platform.lower() != "kalshi":
+        return None
+
+    # Snapshot ID
+    sid = getattr(market, "snapshot_id", None) or (market.get("snapshot_id") if isinstance(market, dict) else None)
+
+    # Status & Tradable
+    status = getattr(market, "market_status", None) or getattr(market, "status", None) or (
+        market.get("market_status") if isinstance(market, dict) else (market.get("status") if isinstance(market, dict) else None)
+    )
+    tradable = getattr(market, "tradable", None)
+    if tradable is None and isinstance(market, dict):
+        tradable = market.get("tradable")
+    if tradable is None:
+        tradable = (str(status).strip().lower() in ("open", "active")) if status else False
+
+    # Provenance
+    data_source = getattr(market, "data_source", None) or (
+        market.get("data_source") if isinstance(market, dict) else "live_api"
+    )
+    depth_truncated = bool(
+        getattr(market, "depth_truncated", False)
+        or (market.get("depth_truncated", False) if isinstance(market, dict) else False)
+    )
+
+    # Timestamps
+    ts = getattr(market, "ts", None) or (market.get("ts") if isinstance(market, dict) else None)
+    if not isinstance(ts, datetime):
+        ts = datetime.now(timezone.utc)
+    elif ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+
+    obs_at = getattr(market, "observed_at_utc", None) or (
+        market.get("observed_at_utc") if isinstance(market, dict) else None
+    ) or ts
+    exch_at = getattr(market, "exchange_updated_at_utc", None) or (
+        market.get("exchange_updated_at_utc") if isinstance(market, dict) else None
+    )
+
+    # Asks and Ladders
+    levels = getattr(market, "levels", None) or (market.get("levels") if isinstance(market, dict) else None)
+    raw_ob = getattr(market, "raw_orderbook", None) or getattr(market, "orderbook", None) or (
+        market.get("raw_orderbook") if isinstance(market, dict) else (market.get("orderbook") if isinstance(market, dict) else None)
+    )
+
+    yes_ask_ladder = []
+    no_ask_ladder = []
+
+    if levels and isinstance(levels, dict):
+        yes_ask_ladder = clean_levels(levels.get("yes_ask", []), ascending=True)
+        no_ask_ladder = clean_levels(levels.get("no_ask", []), ascending=True)
+    elif raw_ob is not None and (hasattr(raw_ob, "yes_bid_levels") or hasattr(raw_ob, "no_bid_levels")):
+        ladders = kalshi_ladders(raw_ob)
+        yes_ask_ladder = ladders.yes_ask
+        no_ask_ladder = ladders.no_ask
+        if exch_at is None:
+            exch_at = ladders.exchange_updated_at
+
+    # Fallback to top-of-book if ladders empty
+    yes_ask = getattr(market, "best_yes_ask", None) or getattr(market, "yes_ask", None) or (
+        market.get("best_yes_ask") if isinstance(market, dict) else (market.get("yes_ask") if isinstance(market, dict) else None)
+    )
+    no_ask = getattr(market, "best_no_ask", None) or getattr(market, "no_ask", None) or (
+        market.get("best_no_ask") if isinstance(market, dict) else (market.get("no_ask") if isinstance(market, dict) else None)
+    )
+
+    best_yes_ask_dec = Decimal(str(yes_ask_ladder[0][0])) if yes_ask_ladder else (Decimal(str(yes_ask)) if yes_ask is not None else None)
+    best_no_ask_dec = Decimal(str(no_ask_ladder[0][0])) if no_ask_ladder else (Decimal(str(no_ask)) if no_ask is not None else None)
+
+    if not yes_ask_ladder and best_yes_ask_dec is not None:
+        size = getattr(market, "ask_yes_size", None) or (market.get("ask_yes_size") if isinstance(market, dict) else None) or Decimal("100")
+        yes_ask_ladder = [(best_yes_ask_dec, Decimal(str(size)))]
+
+    if not no_ask_ladder and best_no_ask_dec is not None:
+        size = getattr(market, "ask_no_size", None) or (market.get("ask_no_size") if isinstance(market, dict) else None) or Decimal("100")
+        no_ask_ladder = [(best_no_ask_dec, Decimal(str(size)))]
+
+    leg1 = LegInput(
+        snapshot_id=sid,
+        platform="kalshi",
+        ticker=ticker,
+        best_ask=best_yes_ask_dec,
+        ask_ladder=yes_ask_ladder,
+        depth_truncated=depth_truncated,
+        observed_at_utc=obs_at,
+        exchange_updated_at_utc=exch_at,
+        tradable=bool(tradable),
+        data_source=str(data_source),
+        is_inferred=False,
+    )
+
+    leg2 = LegInput(
+        snapshot_id=sid,
+        platform="kalshi",
+        ticker=ticker,
+        best_ask=best_no_ask_dec,
+        ask_ladder=no_ask_ladder,
+        depth_truncated=depth_truncated,
+        observed_at_utc=obs_at,
+        exchange_updated_at_utc=exch_at,
+        tradable=bool(tradable),
+        data_source=str(data_source),
+        is_inferred=False,
+    )
+
+    return OpportunityInput(
+        kind="intra",
+        pair_id=None,
+        ticker=ticker,
+        direction="kalshi_intra",
+        leg1=leg1,
+        leg2=leg2,
+        pair_verified=pair_verified,
+    )
+
+
+def evaluate_intra_market_opportunities(
+    markets: Sequence[Any],
+    params: "ExecutabilityParams",
+    t_eval: datetime,
+) -> list["OpportunityEvaluation"]:
+    """Evaluate executability of intra-market opportunities across all configured sizes."""
+    from core.executability import evaluate_opportunity
+
+    evaluations: list["OpportunityEvaluation"] = []
+    for market in markets:
+        opp_input = build_intra_market_executability_input(market)
+        if opp_input is None:
+            continue
+        for q in params.sizes:
+            ev = evaluate_opportunity(opp_input, params, t_eval, size_q=q)
+            evaluations.append(ev)
+    return evaluations
+

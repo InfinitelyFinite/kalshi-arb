@@ -16,9 +16,10 @@ Key Features:
 
 from __future__ import annotations
 
-import argparse
 import asyncio
+from dataclasses import replace
 from datetime import datetime, timezone
+from decimal import Decimal
 import json
 import logging
 import math
@@ -32,11 +33,35 @@ import duckdb
 from pydantic import BaseModel, ConfigDict, Field
 
 from core.config_loader import AppConfig, load_config
-from core.cross_platform_arb import find_cross_platform_opportunities
+from core.cross_platform_arb import (
+    build_cross_platform_executability_inputs,
+    evaluate_cross_platform_opportunities,
+    find_cross_platform_opportunities,
+)
 from core.data_feed import DataFeed, MarketState
-from core.intra_market_arb import find_intra_market_opportunities
+from core.depth import Level
+from core.executability import (
+    Classification,
+    Episode,
+    EpisodeTracker,
+    ExecutabilityParams,
+    LatencyStatus,
+    OpportunityEvaluation,
+    evaluate_opportunity,
+)
+from core.intra_market_arb import (
+    build_intra_market_executability_input,
+    evaluate_intra_market_opportunities,
+    find_intra_market_opportunities,
+)
 from core.market_matcher import MarketMatcher, load_market_overrides
 from core.models import Opportunity
+from core.opportunity_store import (
+    ensure_executability_schema,
+    save_param_set,
+    write_episodes_and_latencies,
+    write_evaluations_and_counts,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +110,17 @@ class OpportunityRecord(BaseModel):
     legs: list[dict[str, Any]] = Field(default_factory=list, description="Execution legs details")
     is_active: bool = Field(default=True, description="Whether opportunity is currently active in replay")
 
+    # Step 12 executability extensions
+    classification: Optional[str] = Field(default=None, description="Classification level (e.g. EXECUTABLE_CANDIDATE)")
+    primary_reject_reason: Optional[str] = Field(default=None, description="Primary rejection reason if not candidate")
+    size_q: Optional[int] = Field(default=None, description="Trade size q")
+    vwap_edge_cents: Optional[float] = Field(default=None, description="Net edge computed with depth VWAP")
+    duration_lower_s: Optional[float] = Field(default=None, description="Lower bound on persistence duration")
+    duration_upper_s: Optional[float] = Field(default=None, description="Upper bound on persistence duration")
+    censored_left: bool = Field(default=False, description="Whether episode was already open at replay start")
+    censored_right: bool = Field(default=False, description="Whether episode was still open at replay end")
+    latency_results: dict[str, str] = Field(default_factory=dict, description="Latency status per latency L")
+
     def record_update(self, opp: Opportunity, current_ts: datetime) -> None:
         """Update opportunity record when observed in consecutive snapshot."""
         self.last_seen_ts = current_ts
@@ -129,6 +165,12 @@ class ReplaySummary(BaseModel):
     edge_stats: dict[str, Any] = Field(default_factory=dict, description="Edge size statistical distribution")
     duration_stats: dict[str, Any] = Field(default_factory=dict, description="Persistence duration statistical distribution")
     opportunities: list[OpportunityRecord] = Field(default_factory=list, description="All completed opportunity records")
+
+    # Step 12 executability extensions
+    evaluations_count: int = Field(default=0, description="Total opportunity evaluations across sizes and parameter sets")
+    episodes_count: int = Field(default=0, description="Total distinct episodes tracked")
+    executable_episodes_count: int = Field(default=0, description="Total executable candidate episodes tracked")
+    param_set_id: Optional[str] = Field(default=None, description="Param set identifier for persisted run")
 
     def format_report(self) -> str:
         """Format an ASCII report detailing replay results and statistics."""
@@ -292,6 +334,11 @@ class ReplayEngine:
         limit_snapshots: Optional[int] = None,
         on_opportunity: Optional[Callable[[Opportunity], None]] = None,
         allow_unverified: bool = False,
+        executability_params: Optional[ExecutabilityParams] = None,
+        tau_fresh_sweep: Optional[Sequence[float]] = None,
+        latency_sweep_s: Optional[Sequence[float]] = None,
+        persist_evaluations: bool = True,
+        param_set_id: Optional[str] = None,
     ) -> None:
         """Initialize ReplayEngine.
 
@@ -309,6 +356,11 @@ class ReplayEngine:
             limit_snapshots: Optional limit on the number of snapshots to replay.
             on_opportunity: Optional callback invoked when an opportunity is detected.
             allow_unverified: If True, queries orderbook_snapshots directly instead of research_snapshots.
+            executability_params: ExecutabilityParams thresholds and cost settings.
+            tau_fresh_sweep: Quote age sensitivity thresholds in seconds.
+            latency_sweep_s: Execution latency survival thresholds in seconds.
+            persist_evaluations: If True, persists evaluations and episodes into DuckDB.
+            param_set_id: Identifier for stored parameter set.
         """
         self.duckdb_path = Path(duckdb_path)
         self.speed = float(speed)
@@ -323,6 +375,35 @@ class ReplayEngine:
         self.limit_snapshots = limit_snapshots
         self.on_opportunity = on_opportunity
         self.allow_unverified = bool(allow_unverified)
+        self.persist_evaluations = persist_evaluations
+        self.param_set_id = param_set_id or "default_run"
+
+        # Executability parameters
+        if executability_params is not None:
+            self.executability_params = executability_params
+        elif hasattr(self.config, "executability"):
+            ec = self.config.executability
+            self.executability_params = ExecutabilityParams(
+                sizes=list(ec.sizes),
+                min_edge_cents=Decimal(str(ec.min_edge_cents)),
+                tau_fresh_s=Decimal(str(ec.tau_fresh)),
+                tau_skew_s=Decimal(str(ec.tau_skew)),
+                clock_tolerance_s=Decimal(str(ec.clock_tolerance_s)),
+                kalshi_taker_rate=Decimal(str(ec.kalshi_taker_rate)),
+                kalshi_multiplier=Decimal(str(ec.kalshi_multiplier)),
+                polymarket_taker_rate=Decimal(str(ec.polymarket_taker_rate)),
+                polygon_gas_cents=Decimal(str(ec.polygon_gas_cents)),
+                slippage_cents_per_bundle=Decimal(str(ec.slippage_cents)),
+            )
+        else:
+            self.executability_params = ExecutabilityParams()
+
+        self.tau_fresh_sweep = list(tau_fresh_sweep) if tau_fresh_sweep is not None else (
+            list(self.config.executability.tau_fresh_sweep) if hasattr(self.config, "executability") else [5.0, 10.0, 30.0]
+        )
+        self.latency_sweep_s = list(latency_sweep_s) if latency_sweep_s is not None else (
+            list(self.config.executability.latency_sweep_s) if hasattr(self.config, "executability") else [1.0, 2.0, 5.0, 10.0, 30.0]
+        )
 
         # Replay DataFeed (in-memory, network disabled)
         self.feed = DataFeed(
@@ -344,6 +425,8 @@ class ReplayEngine:
             if ov.polymarket_condition_id:
                 self._override_lookup[ov.polymarket_condition_id] = ov
                 self._override_lookup[ov.polymarket_condition_id.lower()] = ov
+
+        self._levels_by_sid: dict[int, dict[str, list[Level]]] = {}
 
     @staticmethod
     def _parse_datetime(val: Optional[Union[datetime, str]], is_end: bool = False) -> Optional[datetime]:
@@ -380,7 +463,6 @@ class ReplayEngine:
         except ValueError:
             pass
 
-
         # Try date + time YYYY-MM-DD HH:MM:SS
         for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
             try:
@@ -397,7 +479,15 @@ class ReplayEngine:
         if not self.duckdb_path.exists():
             raise FileNotFoundError(f"Snapshots database file not found at: {self.duckdb_path}")
 
-        conn = duckdb.connect(str(self.duckdb_path), read_only=True)
+        read_only = not self.persist_evaluations
+        try:
+            conn = duckdb.connect(str(self.duckdb_path), read_only=read_only)
+        except Exception:
+            conn = duckdb.connect(str(self.duckdb_path), read_only=True)
+            self.persist_evaluations = False
+
+        if self.persist_evaluations:
+            ensure_executability_schema(conn)
 
         table_name = "orderbook_snapshots"
         if not self.allow_unverified:
@@ -410,8 +500,44 @@ class ReplayEngine:
             except Exception:
                 pass
 
+        cols_in_table = {
+            r[0].lower()
+            for r in conn.execute(
+                f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'"
+            ).fetchall()
+        }
+
+        # Query levels if available
+        self._levels_by_sid = {}
+        try:
+            has_levels = conn.execute(
+                "SELECT count(*) FROM information_schema.tables WHERE table_name = 'orderbook_levels'"
+            ).fetchone()[0] > 0
+            if has_levels:
+                level_rows = conn.execute(
+                    "SELECT snapshot_id, side, price, size FROM orderbook_levels ORDER BY snapshot_id, level_idx"
+                ).fetchall()
+                for sid, side, price, size in level_rows:
+                    if sid not in self._levels_by_sid:
+                        self._levels_by_sid[sid] = {}
+                    side_str = str(side)
+                    if side_str not in self._levels_by_sid[sid]:
+                        self._levels_by_sid[sid][side_str] = []
+                    self._levels_by_sid[sid][side_str].append((Decimal(str(price)), Decimal(str(size))))
+        except Exception as e:
+            logger.debug("Orderbook levels query skipped: %s", e)
+
+        sid_expr = "snapshot_id" if "snapshot_id" in cols_in_table else "NULL AS snapshot_id"
+        obs_expr = "observed_at_utc::VARCHAR" if "observed_at_utc" in cols_in_table else "NULL AS observed_at_utc"
+        exch_expr = "exchange_updated_at_utc::VARCHAR" if "exchange_updated_at_utc" in cols_in_table else "NULL AS exchange_updated_at_utc"
+        status_expr = "market_status" if "market_status" in cols_in_table else "'open' AS market_status"
+        tradable_expr = "tradable" if "tradable" in cols_in_table else "TRUE AS tradable"
+        ds_expr = "data_source" if "data_source" in cols_in_table else "'live_api' AS data_source"
+        trunc_expr = "depth_truncated" if "depth_truncated" in cols_in_table else "FALSE AS depth_truncated"
+        pair_expr = "pair_id" if "pair_id" in cols_in_table else "NULL AS pair_id"
+
         query = [
-            "SELECT ts::VARCHAR, platform, ticker, yes_bid, yes_ask, no_bid, no_ask, volume",
+            f"SELECT ts::VARCHAR, platform, ticker, yes_bid, yes_ask, no_bid, no_ask, volume, {sid_expr}, {obs_expr}, {exch_expr}, {status_expr}, {tradable_expr}, {ds_expr}, {trunc_expr}, {pair_expr}",
             f"FROM {table_name}",
             "WHERE 1=1",
         ]
@@ -448,7 +574,7 @@ class ReplayEngine:
         for row in rows:
             raw_ts = row[0]
             if isinstance(raw_ts, str):
-                ts = datetime.fromisoformat(raw_ts)
+                ts = datetime.fromisoformat(raw_ts.replace("Z", "+00:00"))
             elif isinstance(raw_ts, datetime):
                 ts = raw_ts
             else:
@@ -460,7 +586,6 @@ class ReplayEngine:
             if curr_ts is None or ts == curr_ts:
                 curr_ts = ts
                 curr_batch.append(row)
-
             else:
                 batches.append((curr_ts, curr_batch))
                 curr_ts = ts
@@ -490,216 +615,307 @@ class ReplayEngine:
         conn, rows = self._query_snapshots()
         try:
             batches = self._group_rows_by_timestamp(rows)
-        finally:
-            conn.close()
 
-        total_rows = len(rows)
-        total_snapshots = len(batches)
+            total_rows = len(rows)
+            total_snapshots = len(batches)
 
-        if total_snapshots == 0:
-            logger.warning("No snapshot records found matching specified criteria.")
-            return ReplaySummary(
-                total_snapshots=0,
-                total_rows=0,
-                start_ts=self.start_date,
-                end_ts=self.end_date,
-                simulated_duration_seconds=0.0,
-                wall_clock_duration_seconds=time.time() - wall_start_time,
-                speed_multiplier=self.speed,
-                total_opportunities_found=0,
+            if total_snapshots == 0:
+                logger.warning("No snapshot records found matching specified criteria.")
+                return ReplaySummary(
+                    total_snapshots=0,
+                    total_rows=0,
+                    start_ts=self.start_date,
+                    end_ts=self.end_date,
+                    simulated_duration_seconds=0.0,
+                    wall_clock_duration_seconds=time.time() - wall_start_time,
+                    speed_multiplier=self.speed,
+                    total_opportunities_found=0,
+                )
+
+            start_ts = batches[0][0]
+            end_ts = batches[-1][0]
+            sim_duration = max(0.0, (end_ts - start_ts).total_seconds())
+
+            logger.info(
+                "Replaying %d snapshots (%d rows) from %s to %s at %.1fx speed...",
+                total_snapshots,
+                total_rows,
+                start_ts,
+                end_ts,
+                self.speed,
             )
 
-        start_ts = batches[0][0]
-        end_ts = batches[-1][0]
-        sim_duration = max(0.0, (end_ts - start_ts).total_seconds())
+            # Setup episode trackers (primary and sweeps)
+            trackers: dict[str, tuple[ExecutabilityParams, EpisodeTracker]] = {}
+            sampling_interval = getattr(self.config.data_quality, "snapshot_interval_seconds", 60.0)
+            gap_tolerance = getattr(self.config.executability, "episode_gap_tolerance", 1.5)
 
-        logger.info(
-            "Replaying %d snapshots (%d rows) from %s to %s at %.1fx speed...",
-            total_snapshots,
-            total_rows,
-            start_ts,
-            end_ts,
-            self.speed,
-        )
+            primary_tracker = EpisodeTracker(
+                sampling_interval_s=sampling_interval,
+                episode_gap_tolerance=gap_tolerance,
+                latencies_s=self.latency_sweep_s,
+            )
+            trackers[self.param_set_id] = (self.executability_params, primary_tracker)
 
-        active_opps: dict[str, OpportunityRecord] = {}
-        completed_opps: list[OpportunityRecord] = []
-        total_instances = 0
-        intra_count = 0
-        cross_count = 0
+            # Tau fresh sweeps
+            for tf in self.tau_fresh_sweep:
+                tf_dec = Decimal(str(tf))
+                if tf_dec != self.executability_params.tau_fresh_s:
+                    sw_id = f"{self.param_set_id}_tau_{int(tf)}"
+                    sw_params = replace(self.executability_params, tau_fresh_s=tf_dec)
+                    sw_tracker = EpisodeTracker(
+                        sampling_interval_s=sampling_interval,
+                        episode_gap_tolerance=gap_tolerance,
+                        latencies_s=self.latency_sweep_s,
+                    )
+                    trackers[sw_id] = (sw_params, sw_tracker)
 
-        prev_ts: Optional[datetime] = None
+            active_opps: dict[str, OpportunityRecord] = {}
+            completed_opps: list[OpportunityRecord] = []
+            total_instances = 0
+            intra_count = 0
+            cross_count = 0
 
-        for snapshot_idx, (snapshot_ts, batch_rows) in enumerate(batches, 1):
-            # Speed pacing / sleep delay
-            if prev_ts is not None and self.speed > 0 and not math.isinf(self.speed):
-                sim_step_seconds = max(0.0, (snapshot_ts - prev_ts).total_seconds())
-                if sim_step_seconds > 0:
-                    real_delay = min(sim_step_seconds / self.speed, self.max_sleep_per_step)
-                    if real_delay > 0.001:
-                        await asyncio.sleep(real_delay)
+            prev_ts: Optional[datetime] = None
 
-            prev_ts = snapshot_ts
+            for snapshot_idx, (snapshot_ts, batch_rows) in enumerate(batches, 1):
+                # Speed pacing / sleep delay
+                if prev_ts is not None and self.speed > 0 and not math.isinf(self.speed):
+                    sim_step_seconds = max(0.0, (snapshot_ts - prev_ts).total_seconds())
+                    if sim_step_seconds > 0:
+                        real_delay = min(sim_step_seconds / self.speed, self.max_sleep_per_step)
+                        if real_delay > 0.001:
+                            await asyncio.sleep(real_delay)
 
-            # Ingest batch rows into DataFeed market state
-            for row in batch_rows:
-                ts, platform, ticker, yes_bid, yes_ask, no_bid, no_ask, volume = row
-                p_key = str(platform).lower()
-                t_key = str(ticker)
+                prev_ts = snapshot_ts
 
-                # Metadata enrichment from overrides or known tables
-                ov = self._override_lookup.get(t_key)
-                title = ov.notes or ov.kalshi_title if ov else t_key
-                cid = t_key if (t_key.startswith("0x") or (ov and ov.polymarket_condition_id == t_key)) else None
+                current_batch_markets: list[dict[str, Any]] = []
 
-                self.feed.update_market_state(
-                    platform=p_key,
-                    ticker=t_key,
-                    title=title,
-                    yes_bid=yes_bid,
-                    yes_ask=yes_ask,
-                    no_bid=no_bid,
-                    no_ask=no_ask,
-                    volume=int(volume) if volume is not None else 0,
-                    ts=snapshot_ts,
-                    condition_id=cid,
-                )
+                # Ingest batch rows into DataFeed market state
+                for row in batch_rows:
+                    ts, platform, ticker, yes_bid, yes_ask, no_bid, no_ask, volume, sid, obs_str, exch_str, status, tradable, data_source, trunc, pair_id = row
+                    p_key = str(platform).lower()
+                    t_key = str(ticker)
 
-            # Evaluate Arbitrage on current states
-            current_detected: list[Opportunity] = []
-            all_states = list(self.feed.market_state.values())
+                    obs_at = datetime.fromisoformat(obs_str.replace("Z", "+00:00")) if obs_str else snapshot_ts
+                    if obs_at.tzinfo is None:
+                        obs_at = obs_at.replace(tzinfo=timezone.utc)
+                    exch_at = datetime.fromisoformat(exch_str.replace("Z", "+00:00")) if exch_str else None
+                    if exch_at and exch_at.tzinfo is None:
+                        exch_at = exch_at.replace(tzinfo=timezone.utc)
 
-            # 1. Intra-market
-            if self.include_intra:
-                intra_opps = find_intra_market_opportunities(
-                    all_states,
-                    config=self.config,
-                    min_edge=self.min_edge,
-                )
-                current_detected.extend(intra_opps)
+                    levels = self._levels_by_sid.get(sid, {}) if sid is not None else {}
 
-            # 2. Cross-platform
-            if self.include_cross:
-                kalshi_states = [s for s in all_states if s.platform == "kalshi"]
-                poly_states = [s for s in all_states if s.platform == "polymarket"]
-                if kalshi_states and poly_states:
-                    matches = self.matcher.match(kalshi_states, poly_states)
-                    k_books = {s.ticker: s for s in kalshi_states}
-                    p_books = {}
-                    for s in poly_states:
-                        p_books[s.ticker] = s
-                        if s.condition_id:
-                            p_books[s.condition_id] = s
+                    m_dict = {
+                        "snapshot_id": sid,
+                        "platform": p_key,
+                        "ticker": t_key,
+                        "ts": snapshot_ts,
+                        "observed_at_utc": obs_at,
+                        "exchange_updated_at_utc": exch_at,
+                        "yes_bid": yes_bid,
+                        "yes_ask": yes_ask,
+                        "no_bid": no_bid,
+                        "no_ask": no_ask,
+                        "volume": int(volume) if volume is not None else 0,
+                        "market_status": status,
+                        "tradable": tradable,
+                        "data_source": data_source,
+                        "depth_truncated": trunc,
+                        "levels": levels,
+                        "pair_id": pair_id,
+                    }
+                    current_batch_markets.append(m_dict)
 
-                    cross_opps = find_cross_platform_opportunities(
-                        matched_pairs=matches,
-                        kalshi_orderbooks=k_books,
-                        polymarket_orderbooks=p_books,
+                    # Metadata enrichment from overrides or known tables
+                    ov = self._override_lookup.get(t_key)
+                    title = ov.notes or ov.kalshi_title if ov else t_key
+                    cid = t_key if (t_key.startswith("0x") or (ov and ov.polymarket_condition_id == t_key)) else None
+
+                    self.feed.update_market_state(
+                        platform=p_key,
+                        ticker=t_key,
+                        title=title,
+                        yes_bid=yes_bid,
+                        yes_ask=yes_ask,
+                        no_bid=no_bid,
+                        no_ask=no_ask,
+                        volume=int(volume) if volume is not None else 0,
+                        ts=snapshot_ts,
+                        condition_id=cid,
+                    )
+
+                # 1. Legacy Opportunity detection
+                current_detected: list[Opportunity] = []
+                all_states = list(self.feed.market_state.values())
+
+                if self.include_intra:
+                    intra_opps = find_intra_market_opportunities(
+                        all_states,
                         config=self.config,
                         min_edge=self.min_edge,
                     )
-                    current_detected.extend(cross_opps)
+                    current_detected.extend(intra_opps)
 
-            # Map current detected opportunities by key
-            detected_by_key: dict[str, Opportunity] = {}
-            for opp in current_detected:
-                opp_key = self._get_opportunity_key(opp)
-                detected_by_key[opp_key] = opp
-                total_instances += 1
-                if self.on_opportunity:
-                    try:
-                        self.on_opportunity(opp)
-                    except Exception as e:
-                        logger.warning("Error in on_opportunity callback: %s", e)
+                if self.include_cross:
+                    kalshi_states = [s for s in all_states if s.platform == "kalshi"]
+                    poly_states = [s for s in all_states if s.platform == "polymarket"]
+                    if kalshi_states and poly_states:
+                        matches = self.matcher.match(kalshi_states, poly_states)
+                        k_books = {s.ticker: s for s in kalshi_states}
+                        p_books = {}
+                        for s in poly_states:
+                            p_books[s.ticker] = s
+                            if s.condition_id:
+                                p_books[s.condition_id] = s
 
-            # Reconcile with active opportunities (Persistence & Disappearance Tracking)
-            current_keys = set(detected_by_key.keys())
-            active_keys = set(active_opps.keys())
+                        cross_opps = find_cross_platform_opportunities(
+                            matched_pairs=matches,
+                            kalshi_orderbooks=k_books,
+                            polymarket_orderbooks=p_books,
+                            config=self.config,
+                            min_edge=self.min_edge,
+                        )
+                        current_detected.extend(cross_opps)
 
-            # A. Disappeared opportunities: in active_keys but not in current_keys
-            disappeared_keys = active_keys - current_keys
-            for d_key in disappeared_keys:
-                rec = active_opps.pop(d_key)
-                rec.close(disappeared_ts=snapshot_ts)
+                # 2. Executability evaluations and episode tracking
+                for p_id, (params, tracker) in trackers.items():
+                    batch_evals: list[OpportunityEvaluation] = []
+                    if self.include_intra:
+                        intra_evals = evaluate_intra_market_opportunities(
+                            current_batch_markets,
+                            params=params,
+                            t_eval=snapshot_ts,
+                        )
+                        batch_evals.extend(intra_evals)
+
+                    if self.include_cross:
+                        k_books = {m["ticker"]: m for m in current_batch_markets if m["platform"] == "kalshi"}
+                        p_books = {m["ticker"]: m for m in current_batch_markets if m["platform"] == "polymarket"}
+                        for m in current_batch_markets:
+                            if m["platform"] == "polymarket" and m.get("pair_id"):
+                                p_books[m["pair_id"]] = m
+
+                        kalshi_states = [s for s in all_states if s.platform == "kalshi"]
+                        poly_states = [s for s in all_states if s.platform == "polymarket"]
+                        if kalshi_states and poly_states:
+                            matches = self.matcher.match(kalshi_states, poly_states)
+                            cross_evals = evaluate_cross_platform_opportunities(
+                                matched_pairs=matches,
+                                kalshi_orderbooks=k_books,
+                                polymarket_orderbooks=p_books,
+                                params=params,
+                                t_eval=snapshot_ts,
+                                pair_verified=True,
+                            )
+                            batch_evals.extend(cross_evals)
+
+                    tracker.step(snapshot_ts, batch_evals)
+                    if self.persist_evaluations:
+                        write_evaluations_and_counts(conn, p_id, batch_evals, snapshot_ts)
+
+                # Map current detected opportunities by key
+                detected_by_key: dict[str, Opportunity] = {}
+                for opp in current_detected:
+                    opp_key = self._get_opportunity_key(opp)
+                    detected_by_key[opp_key] = opp
+                    total_instances += 1
+                    if self.on_opportunity:
+                        try:
+                            self.on_opportunity(opp)
+                        except Exception as e:
+                            logger.warning("Error in on_opportunity callback: %s", e)
+
+                # Reconcile with active opportunities (Persistence & Disappearance Tracking)
+                current_keys = set(detected_by_key.keys())
+                active_keys = set(active_opps.keys())
+
+                # A. Disappeared opportunities
+                disappeared_keys = active_keys - current_keys
+                for d_key in disappeared_keys:
+                    rec = active_opps.pop(d_key)
+                    rec.close(disappeared_ts=snapshot_ts)
+                    completed_opps.append(rec)
+                    logger.debug("Opportunity %s closed at %s after %.1fs", d_key, snapshot_ts, rec.duration_seconds)
+
+                # B. Continued opportunities
+                persisted_keys = active_keys & current_keys
+                for p_key in persisted_keys:
+                    active_opps[p_key].record_update(detected_by_key[p_key], current_ts=snapshot_ts)
+
+                # C. Newly appeared opportunities
+                new_keys = current_keys - active_keys
+                for n_key in new_keys:
+                    opp = detected_by_key[n_key]
+                    rec = OpportunityRecord(
+                        opportunity_id=n_key,
+                        strategy=opp.strategy,
+                        platform=opp.platform,
+                        ticker=opp.ticker,
+                        target_platform=opp.target_platform,
+                        target_ticker=opp.target_ticker,
+                        side_actions=opp.side_actions,
+                        start_ts=snapshot_ts,
+                        last_seen_ts=snapshot_ts,
+                        snapshots_count=1,
+                        initial_edge_cents=float(opp.edge_cents),
+                        min_edge_cents=float(opp.edge_cents),
+                        max_edge_cents=float(opp.edge_cents),
+                        mean_edge_cents=float(opp.edge_cents),
+                        edge_samples=[float(opp.edge_cents)],
+                        gross_edge_cents=float(opp.gross_edge_cents) if opp.gross_edge_cents is not None else None,
+                        estimated_fees_cents=float(opp.estimated_fees_cents) if opp.estimated_fees_cents is not None else 0.0,
+                        legs=[leg.model_dump(mode="json") for leg in opp.legs],
+                        is_active=True,
+                    )
+                    active_opps[n_key] = rec
+                    if opp.strategy == "intra_market":
+                        intra_count += 1
+                    else:
+                        cross_count += 1
+
+            # Finalize remaining active opportunities
+            for rec in active_opps.values():
+                rec.is_active = False
                 completed_opps.append(rec)
-                logger.debug("Opportunity %s closed at %s after %.1fs", d_key, snapshot_ts, rec.duration_seconds)
 
-            # B. Continued opportunities: in both active_keys and current_keys
-            persisted_keys = active_keys & current_keys
-            for p_key in persisted_keys:
-                active_opps[p_key].record_update(detected_by_key[p_key], current_ts=snapshot_ts)
+            # Finalize episode trackers and persist
+            total_episodes = 0
+            total_exec_episodes = 0
+            for p_id, (params, tracker) in trackers.items():
+                eps = tracker.finalize()
+                if p_id == self.param_set_id:
+                    total_episodes = len(eps)
+                    total_exec_episodes = sum(1 for ep in eps if ep.level == "executable")
+                if self.persist_evaluations:
+                    save_param_set(conn, p_id, params)
+                    write_episodes_and_latencies(conn, p_id, tracker, eps)
 
-            # C. Newly appeared opportunities: in current_keys but not in active_keys
-            new_keys = current_keys - active_keys
-            for n_key in new_keys:
-                opp = detected_by_key[n_key]
-                rec = OpportunityRecord(
-                    opportunity_id=n_key,
-                    strategy=opp.strategy,
-                    platform=opp.platform,
-                    ticker=opp.ticker,
-                    target_platform=opp.target_platform,
-                    target_ticker=opp.target_ticker,
-                    side_actions=opp.side_actions,
-                    start_ts=snapshot_ts,
-                    last_seen_ts=snapshot_ts,
-                    snapshots_count=1,
-                    initial_edge_cents=float(opp.edge_cents),
-                    min_edge_cents=float(opp.edge_cents),
-                    max_edge_cents=float(opp.edge_cents),
-                    mean_edge_cents=float(opp.edge_cents),
-                    edge_samples=[float(opp.edge_cents)],
-                    gross_edge_cents=float(opp.gross_edge_cents) if opp.gross_edge_cents is not None else None,
-                    estimated_fees_cents=float(opp.estimated_fees_cents) if opp.estimated_fees_cents is not None else 0.0,
-                    legs=[leg.model_dump(mode="json") for leg in opp.legs],
-                    is_active=True,
-                )
-                active_opps[n_key] = rec
-                if opp.strategy == "intra_market":
-                    intra_count += 1
-                else:
-                    cross_count += 1
+            edge_stats = self._calculate_edge_distribution(completed_opps)
+            dur_stats = self._calculate_duration_distribution(completed_opps)
 
-            # Heartbeat logger every 50 snapshots
-            if snapshot_idx % 50 == 0 or snapshot_idx == total_snapshots:
-                logger.info(
-                    "Replay Progress: %d/%d snapshots (%.1f%%) | Active Opps: %d | Completed Opps: %d",
-                    snapshot_idx,
-                    total_snapshots,
-                    (snapshot_idx / total_snapshots) * 100.0,
-                    len(active_opps),
-                    len(completed_opps),
-                )
-
-        # Finalize any remaining active opportunities at final snapshot
-        for opp_key, rec in active_opps.items():
-            rec.close(disappeared_ts=end_ts)
-            completed_opps.append(rec)
-
-        wall_duration = time.time() - wall_start_time
-
-        # Calculate Edge Statistics and Duration Statistics
-        edge_stats = self._calculate_edge_distribution(completed_opps)
-        duration_stats = self._calculate_duration_distribution(completed_opps)
-
-        summary = ReplaySummary(
-            total_snapshots=total_snapshots,
-            total_rows=total_rows,
-            start_ts=start_ts,
-            end_ts=end_ts,
-            simulated_duration_seconds=sim_duration,
-            wall_clock_duration_seconds=wall_duration,
-            speed_multiplier=self.speed,
-            total_opportunities_found=len(completed_opps),
-            total_opportunity_instances=total_instances,
-            intra_market_count=intra_count,
-            cross_platform_count=cross_count,
-            edge_stats=edge_stats,
-            duration_stats=duration_stats,
-            opportunities=completed_opps,
-        )
-
-        return summary
+            return ReplaySummary(
+                total_snapshots=total_snapshots,
+                total_rows=total_rows,
+                start_ts=start_ts,
+                end_ts=end_ts,
+                simulated_duration_seconds=sim_duration,
+                wall_clock_duration_seconds=time.time() - wall_start_time,
+                speed_multiplier=self.speed,
+                total_opportunities_found=len(completed_opps),
+                total_opportunity_instances=total_instances,
+                intra_market_count=intra_count,
+                cross_platform_count=cross_count,
+                edge_stats=edge_stats,
+                duration_stats=dur_stats,
+                opportunities=completed_opps,
+                evaluations_count=total_instances,
+                episodes_count=total_episodes,
+                executable_episodes_count=total_exec_episodes,
+                param_set_id=self.param_set_id,
+            )
+        finally:
+            conn.close()
 
     def run_sync(self) -> ReplaySummary:
         """Synchronous wrapper around `run()`."""

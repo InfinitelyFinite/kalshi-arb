@@ -183,6 +183,31 @@ class DataQualityConfig(BaseModel):
     )
 
 
+class ExecutabilityConfig(BaseModel):
+    sizes: list[int] = Field(default_factory=lambda: [1, 10, 50], description="Order sizes q evaluated")
+    min_edge_cents: float = Field(default=2.0, description="Minimum net edge threshold in cents")
+    tau_fresh: float = Field(default=10.0, gt=0, description="Max acceptable quote age in seconds")
+    tau_fresh_sweep: list[float] = Field(
+        default_factory=lambda: [5.0, 10.0, 30.0], description="Freshness sensitivity sweep thresholds"
+    )
+    tau_skew: float = Field(default=5.0, ge=0, description="Max acceptable inter-exchange skew in seconds")
+    tau_skew_sweep: list[float] = Field(
+        default_factory=lambda: [1.0, 5.0, 10.0], description="Skew sensitivity sweep thresholds"
+    )
+    clock_tolerance_s: float = Field(default=2.0, ge=0, description="Tolerance for forward clock skew in seconds")
+    kalshi_taker_rate: float = Field(default=0.07, ge=0, description="Kalshi variable taker fee coefficient")
+    kalshi_multiplier: float = Field(default=1.0, ge=0, description="Kalshi series multiplier")
+    polymarket_taker_rate: float = Field(default=0.0, ge=0, description="Polymarket variable taker fee coefficient")
+    polygon_gas_cents: float = Field(default=0.0, ge=0, description="Total network gas cost per trade in cents")
+    slippage_cents: float = Field(default=0.0, ge=0, description="Per-bundle slippage allowance in cents")
+    latency_sweep_s: list[float] = Field(
+        default_factory=lambda: [1.0, 2.0, 5.0, 10.0, 30.0], description="Latency survival sweep thresholds in seconds"
+    )
+    episode_gap_tolerance: float = Field(
+        default=1.5, gt=0, description="Episode gap tolerance multiplier of sampling interval"
+    )
+
+
 class AppConfig(BaseModel):
     mode: ModeConfig
     kalshi: KalshiConfig
@@ -193,6 +218,7 @@ class AppConfig(BaseModel):
     pair_registry: PairRegistryConfig = Field(default_factory=PairRegistryConfig)
     depth: DepthConfig = Field(default_factory=DepthConfig)
     data_quality: DataQualityConfig = Field(default_factory=DataQualityConfig)
+    executability: ExecutabilityConfig = Field(default_factory=ExecutabilityConfig)
 
     @model_validator(mode="after")
     def validate_environment_credentials(self) -> AppConfig:
